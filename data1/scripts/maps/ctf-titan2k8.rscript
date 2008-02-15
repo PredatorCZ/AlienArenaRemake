@@ -1,12 +1,3 @@
-textures/arena6/plate5
-{
-	{
-		map gfx/plate5fx.tga
-		blendFunc GL_ONE GL_ONE_MINUS_SRC_ALPHA
-		alphashift 5 0.05 0.4
-		nolightmap
-	}
-}
 textures/arena2/grid2
 {
 	{
@@ -20,6 +11,7 @@ textures/arena2/grid2
 	{
 		map gfx/comp2.tga
 		blendfunc GL_ONE GL_ONE_MINUS_SRC_ALPHA
+		origin -32 -96 -544
 		rotate 10
 		alphashift 0 0.2 0.2	
 		nolightmap
@@ -47,7 +39,7 @@ textures/arena4/light3
 		lensflare
 	}
 }
-textures/arena3/light1
+textures/arena7/light5
 {
 	{
 		lensflare
@@ -57,5 +49,48 @@ textures/arena3/light2
 {
 	{
 		lensflare
+	}
+}
+textures/arena7/light3
+{
+	{
+		lensflare
+	}
+}
+textures/arena7/light10
+{
+	{
+		lensflare
+	}
+}
+textures/arena7/light11
+{
+	{
+		lensflare
+	}
+}
+textures/arena9/trim2
+{
+	{
+		map gfx/bluelightning2.tga
+		blendFunc GL_ONE GL_ONE_MINUS_SRC_ALPHA
+		alphashift 5 0.3 0.9
+		scroll static 5 static 0
+		nolightmap
+	}
+	{
+		map gfx/trim2mask.tga
+		alphamask
+	}
+}
+textures/arena6/fodblue
+{
+	{		
+		map gfx/reflect.tga
+		blendFunc GL_ONE GL_ONE_MINUS_SRC_ALPHA
+		scale static 1 static 1
+		scroll static 0 static 0
+		alphashift 0 0.1 0.1
+		envmap
 	}
 }
