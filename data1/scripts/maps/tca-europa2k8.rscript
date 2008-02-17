@@ -69,12 +69,6 @@ textures/arena7/light11
 		lensflare
 	}
 }
-textures/rage/metallight_2
-{
-	{
-		lensflare
-	}
-}
 textures/arena9/trim2
 {
 	{
@@ -87,16 +81,5 @@ textures/arena9/trim2
 	{
 		map gfx/trim2mask.tga
 		alphamask
-	}
-}
-textures/arena6/fodblue
-{
-	{		
-		map gfx/reflect.tga
-		blendFunc GL_ONE GL_ONE_MINUS_SRC_ALPHA
-		scale static 1 static 1
-		scroll static 0 static 0
-		alphashift 0 0.1 0.1
-		envmap
 	}
 }
