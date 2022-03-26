@@ -228,7 +228,7 @@ void R_RenderWaterPolys (msurface_t *fa)
 		//for now, just map a reflection texture
 		rs_stage_t *stage = rs_shader->stage;
 		
-		texnum = stage->texture->texnum; //pass this to renderwaterpolys
+		texnum = stage->texture->index; //pass this to renderwaterpolys
 		
 		if(stage->scale.scaleX != 0.0f && stage->scale.scaleY != 0.0f) 
 		{
@@ -244,10 +244,10 @@ void R_RenderWaterPolys (msurface_t *fa)
 
 		glUseProgramObjectARB( g_waterprogramObj );
 
-		GL_MBind (0, fa->texinfo->image->texnum);
+		GL_MBind (0, fa->texinfo->image->index);
 		glUniform1iARB( g_location_baseTexture, 0);
 
-		GL_MBind (1, fa->texinfo->normalMap->texnum);
+		GL_MBind (1, fa->texinfo->normalMap->index);
 		glUniform1iARB( g_location_normTexture, 1);
 
 		if (texnum)
@@ -291,7 +291,7 @@ void R_RenderWaterPolys (msurface_t *fa)
 		if (fa->texinfo->flags & SURF_FLOWING)
 			scroll = -((r_newrefdef.time / 2.0f) - (int)(r_newrefdef.time / 2.0f));
 		
-		GL_MBind (0, fa->texinfo->image->texnum);
+		GL_MBind (0, fa->texinfo->image->index);
 		
 		GL_SelectTexture (0);
 		qglMatrixMode (GL_TEXTURE);
@@ -387,7 +387,7 @@ void R_DrawSkyBox (void)
 
 	for (i=0 ; i<6 ; i++)
 	{
-		GL_Bind (sky_images[skytexorder[i]]->texnum);
+		GL_Bind (sky_images[skytexorder[i]]->index);
 
 		skyboxside = i;
 		Sky_DrawQuad_Callback ();
@@ -458,9 +458,6 @@ void R_SetSky (char *name, float rotate, vec3_t axis)
 			sky_images[i] = r_notexture;
 		else 
 		{
-			//valid sky, load shader
-			strcpy(pathname,sky_images[i]->name);
-			pathname[strlen(pathname)-4]=0;
 			if(sky_images[i]->script)
 				RS_ReadyScript(sky_images[i]->script);
 		}
@@ -468,14 +465,14 @@ void R_SetSky (char *name, float rotate, vec3_t axis)
 		// get rid of nasty visible seams in the skybox (better method than 
 		// screwing around with the texcoords)
 		GL_SelectTexture (0);
-		GL_Bind (sky_images[i]->texnum);
+		GL_Bind (sky_images[i]->index);
 		qglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
 		qglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
 
 		//set only if not set by fog script
 		if(r_sunX == 0.0 && r_sunY == 0.0 && r_sunZ == 0.0)
 		{
-			if (strstr(pathname, "hspace")) {
+			if (strstr(skyname, "hspace")) {
 				VectorSet(sun_origin, -5000, -100000, 115000);
 				spacebox = true;
 			}

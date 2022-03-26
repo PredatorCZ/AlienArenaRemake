@@ -718,14 +718,14 @@ static void R_Mesh_SetupStandardRender (const entity_t *ent, const model_t *mod,
 	if (!skin)
 		skin = r_notexture;	// fallback..
 	
-	GL_MBind (0, skin->texnum);
+	GL_MBind (0, skin->index);
 	glUniform1iARB (uniforms->baseTex, 0);
 	
 	if (mod->lightmap != NULL)
 	{
 		glUniform1iARB (uniforms->lightmap, (mod->typeFlags & MESH_LM_SEPARATE_COORDS) ? rs_lightmap_separate_texcoords : rs_lightmap_on);
 		glUniform1iARB (uniforms->lightmapTexture, 1);
-		GL_MBind (1, mod->lightmap->texnum);
+		GL_MBind (1, mod->lightmap->index);
 		
 		if (!fragmentshader)
 		{
@@ -744,12 +744,12 @@ static void R_Mesh_SetupStandardRender (const entity_t *ent, const model_t *mod,
 		
 		if (!shell)
 		{
-			GL_MBind (2, rs->stage->texture->texnum);
+			GL_MBind (2, rs->stage->texture->index);
 
-			GL_MBind (3, rs->stage->texture2->texnum);
+			GL_MBind (3, rs->stage->texture2->index);
 			glUniform1iARB (uniforms->fxTex, 3);
 
-			GL_MBind (4, rs->stage->texture3->texnum);
+			GL_MBind (4, rs->stage->texture3->index);
 			glUniform1iARB (uniforms->fx2Tex, 4);
 
 			R_SetShadowmapUniforms (&uniforms->shadowmap_uniforms, 5, true);
@@ -778,9 +778,9 @@ static void R_Mesh_SetupStandardRender (const entity_t *ent, const model_t *mod,
 		else
 		{
 			if (ent->flags & RF_GLOW)
-				GL_MBind (1, r_shellnormal->texnum);
+				GL_MBind (1, r_shellnormal->index);
 			else
-				GL_MBind (1, r_shellnormal2->texnum);
+				GL_MBind (1, r_shellnormal2->index);
 		}
 		
 		glUniform1iARB (uniforms->useFX, shell ? 0 : rs->stage->fx);
@@ -852,14 +852,14 @@ static void R_Mesh_SetupGlassRender (const entity_t *ent, const model_t *mod, co
 	if (glass)
 	{
 		glUniform1iARB (glass_uniforms.refTexture, 0);
-		GL_MBind (0, r_mirrorspec->texnum);
+		GL_MBind (0, r_mirrorspec->index);
 		type |= 2;
 	}
 	
 	if (mirror)
 	{
 		glUniform1iARB (glass_uniforms.mirTexture, 1);
-		GL_MBind (1, r_mirrortexture->texnum);
+		GL_MBind (1, r_mirrortexture->index);
 		type |= 1;
 	}
 	
@@ -992,7 +992,7 @@ static void R_Mesh_DrawFrame (const entity_t *ent, const model_t *mod, const vec
 		
 		if (mod->lightmap != NULL)
 		{
-			lmtex = mod->lightmap->texnum;
+			lmtex = mod->lightmap->index;
 			lm = (mod->typeFlags & MESH_LM_SEPARATE_COORDS) ? rs_lightmap_separate_texcoords : rs_lightmap_on;
 		}
 
@@ -1065,7 +1065,7 @@ static void R_Mesh_DrawBlankMeshFrame (const entity_t *ent, const model_t *mod)
 	if (!skin)
 		skin = r_notexture;	// fallback..
 
-	GL_MBind (0, skin->texnum);
+	GL_MBind (0, skin->index);
 	glUniform1iARB (blankmesh_uniforms.baseTex, 0);
 
 	R_Mesh_DrawVBO (ent, mod, ent->frame != 0 || mod->num_frames != 1);

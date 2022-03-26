@@ -806,7 +806,7 @@ Mod_LoadTexinfo
 int compare_unique_texinfo (const void *_a, const void *_b)
 {
 	mtexinfo_t *a = *(mtexinfo_t **)_a, *b = *(mtexinfo_t **)_b;
-	return a->image->texnum-b->image->texnum;
+	return a->image->index-b->image->index;
 }
 
 void Mod_LoadTexinfo (lump_t *l)
@@ -1403,7 +1403,7 @@ void Mod_LoadFaces (lump_t *l, lump_t *lighting)
 						color[1] = stage->colormap.green;
 						color[2] = stage->colormap.blue;
 					}
-					Mod_AddBeamSurface(out, stage->texture->texnum, color, stage->scale.scaleX, stage->texture->bare_name, stage->beamtype,
+					Mod_AddBeamSurface(out, stage->texture->index, color, stage->scale.scaleX, stage->texture->bare_name, stage->beamtype,
 						stage->xang, stage->yang, stage->rotating);
 				}
 				if (stage->cube)

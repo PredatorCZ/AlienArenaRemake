@@ -54,8 +54,8 @@ static int compare_particle (const void *_a, const void *_b)
 		return -1;
 	if (a->image == NULL && b->image == NULL)
 		return 0;
-	if (a->image->texnum != b->image->texnum)
-		return a->image->texnum-b->image->texnum;
+	if (a->image->index != b->image->index)
+		return a->image->index-b->image->index;
 	if (a->blendsrc != b->blendsrc)
 		return a->blendsrc-b->blendsrc;
 	if (a->blenddst != b->blenddst)
@@ -163,7 +163,7 @@ void PART_DrawParticles( int num_particles, particle_t **particles, const unsign
 		}
 		else {
 			if (p->image != NULL)
-				texnum = p->image->texnum;
+				texnum = p->image->index;
 			else
 				texnum = 0;
 			blendsrc = p->blendsrc;
@@ -450,7 +450,7 @@ void Mod_AddFlareSurface (msurface_t *surf, int type )
 	===================
 	*/
 
-	GL_Bind( surf->texinfo->image->texnum );
+	GL_Bind( surf->texinfo->image->index );
 	width = surf->texinfo->image->upload_width;
 	height = surf->texinfo->image->upload_height;
 
@@ -499,9 +499,9 @@ void Mod_AddFlareSurface (msurface_t *surf, int type )
 void PART_RenderFlare (flare_t *light)
 {
 	if(light->style == 0)
-		GL_Bind (r_flare->texnum);
+		GL_Bind (r_flare->index);
 	else
-		GL_Bind (r_flare1->texnum);
+		GL_Bind (r_flare1->index);
 	
 	c_flares++;
 	
@@ -677,7 +677,7 @@ void PART_RenderSunFlare(image_t * tex, float offset, float radius, float depth,
 	float diameter = 2.0*radius;
 
 	qglColor4f (r, g, b, alpha);
-	GL_MBind (0, tex->texnum);
+	GL_MBind (0, tex->index);
 
 	PART_GetSunFlareBounds (offset, radius, mins, maxs);
 	
@@ -1009,7 +1009,7 @@ void R_DrawVegetationSurface ( void )
 		{
 			c_grasses++;
 			
-			GL_Bind(grass->tex->texnum);
+			GL_Bind(grass->tex->index);
 			
 			if(gl_dynamic->integer)
 				R_DynamicLightPoint (origin, lightLevel);
@@ -1345,7 +1345,7 @@ void R_SI_InitTextures( void )
 	/* Disable more than one mipmap level. FIXME: improve mushy mipmap 
 	 * detection so this isn't necessary.
 	 */ \
-	GL_Bind(s_item ## itemnum ->texnum); \
+	GL_Bind(s_item ## itemnum ->index); \
 	qglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1);
 
 	R_SI_InitTexture (0,  w_chaingun);
@@ -1431,14 +1431,14 @@ void R_DrawSimpleItems ( void )
 					qglColor4f( 1, 0, 1, 1 ); 
 					break;
 			}
-			if (	(mod->simple_texnum == s_item17->texnum) ||
-					(mod->simple_texnum == s_item18->texnum) ||
-					(mod->simple_texnum == s_item19->texnum) ||
-					(mod->simple_texnum == s_item20->texnum) ||
-					(mod->simple_texnum == s_item21->texnum) ||
-					(mod->simple_texnum == s_item22->texnum) ||
-					(mod->simple_texnum == s_item23->texnum) ||
-					(mod->simple_texnum == s_item24->texnum))
+			if (	(mod->simple_texnum == s_item17->index) ||
+					(mod->simple_texnum == s_item18->index) ||
+					(mod->simple_texnum == s_item19->index) ||
+					(mod->simple_texnum == s_item20->index) ||
+					(mod->simple_texnum == s_item21->index) ||
+					(mod->simple_texnum == s_item22->index) ||
+					(mod->simple_texnum == s_item23->index) ||
+					(mod->simple_texnum == s_item24->index))
 			{
 				scale = 40.0;
 			}
@@ -1478,109 +1478,109 @@ void R_SetSimpleTexnum (model_t *loadmodel, const char *pathname)
 	COM_StripExtension(pathname, shortname);
 	if (!Q_strcasecmp (shortname, "models/items/ammo/bullets/medium/tris"))
 	{
-		loadmodel->simple_texnum = s_item0->texnum;
+		loadmodel->simple_texnum = s_item0->index;
 	}
 	else if (!Q_strcasecmp (shortname, "models/items/ammo/cells/medium/tris"))
 	{
-		loadmodel->simple_texnum = s_item1->texnum;
+		loadmodel->simple_texnum = s_item1->index;
 	}
 	else if (!Q_strcasecmp (shortname, "models/items/ammo/grenades/medium/tris"))
 	{
-		loadmodel->simple_texnum = s_item2->texnum;
+		loadmodel->simple_texnum = s_item2->index;
 	}
 	else if (!Q_strcasecmp (shortname, "models/items/ammo/rockets/medium/tris"))
 	{
-		loadmodel->simple_texnum = s_item3->texnum;
+		loadmodel->simple_texnum = s_item3->index;
 	}
 	else if (!Q_strcasecmp (shortname, "models/items/ammo/shells/medium/tris"))
 	{
-		loadmodel->simple_texnum = s_item4->texnum;
+		loadmodel->simple_texnum = s_item4->index;
 	}
 	//powerups
 	else if (!Q_strcasecmp (shortname, "models/items/haste/tris"))
 	{
-		loadmodel->simple_texnum = s_item5->texnum;
+		loadmodel->simple_texnum = s_item5->index;
 	}
 	else if (!Q_strcasecmp (shortname, "models/items/invulner/tris"))
 	{
-		loadmodel->simple_texnum = s_item6->texnum;
+		loadmodel->simple_texnum = s_item6->index;
 	}
 	else if (!Q_strcasecmp (shortname, "models/items/quaddama/tris"))
 	{
-		loadmodel->simple_texnum = s_item7->texnum;
+		loadmodel->simple_texnum = s_item7->index;
 	}
 	else if (!Q_strcasecmp (shortname, "models/items/sproing/tris"))
 	{
-		loadmodel->simple_texnum = s_item8->texnum;
+		loadmodel->simple_texnum = s_item8->index;
 	}
 	else if (!Q_strcasecmp (shortname, "models/items/adrenaline/tris"))
 	{
-		loadmodel->simple_texnum = s_item9->texnum;
+		loadmodel->simple_texnum = s_item9->index;
 	}
 	//armor
 	else if (!Q_strcasecmp (shortname, "models/items/armor/shard/tris"))
 	{
-		loadmodel->simple_texnum = s_item10->texnum;
+		loadmodel->simple_texnum = s_item10->index;
 	}
 	else if (!Q_strcasecmp (shortname, "models/items/armor/jacket/tris"))
 	{
-		loadmodel->simple_texnum = s_item11->texnum;
+		loadmodel->simple_texnum = s_item11->index;
 	}
 	else if (!Q_strcasecmp (shortname, "models/items/armor/combat/tris"))
 	{
-		loadmodel->simple_texnum = s_item12->texnum;
+		loadmodel->simple_texnum = s_item12->index;
 	}
 	else if (!Q_strcasecmp (shortname, "models/items/armor/body/tris"))
 	{
-		loadmodel->simple_texnum = s_item13->texnum;
+		loadmodel->simple_texnum = s_item13->index;
 	}
 	//health
 	else if (!Q_strcasecmp (shortname, "models/items/healing/small/tris"))
 	{
-		loadmodel->simple_texnum = s_item14->texnum;
+		loadmodel->simple_texnum = s_item14->index;
 		loadmodel->simple_color = simplecolor_green;
 	}
 	else if (!Q_strcasecmp (shortname, "models/items/healing/medium/tris"))
 	{
-		loadmodel->simple_texnum = s_item14->texnum;
+		loadmodel->simple_texnum = s_item14->index;
 		loadmodel->simple_color = simplecolor_blue;
 	}
 	else if (!Q_strcasecmp (shortname, "models/items/healing/large/tris"))
 	{
-		loadmodel->simple_texnum = s_item14->texnum;
+		loadmodel->simple_texnum = s_item14->index;
 		loadmodel->simple_color = simplecolor_purple;
 	}
 	//weapons
 	else if (!Q_strcasecmp (shortname, "models/weapons/g_beamgun/tris"))
 	{
-		loadmodel->simple_texnum = s_item17->texnum;
+		loadmodel->simple_texnum = s_item17->index;
 	}
 	else if (!Q_strcasecmp (shortname, "models/weapons/g_vaporizer/tris"))
 	{
-		loadmodel->simple_texnum = s_item18->texnum;
+		loadmodel->simple_texnum = s_item18->index;
 	}
 	else if (!Q_strcasecmp (shortname, "models/weapons/g_disruptor/tris"))
 	{
-		loadmodel->simple_texnum = s_item19->texnum;
+		loadmodel->simple_texnum = s_item19->index;
 	}
 	else if (!Q_strcasecmp (shortname, "models/weapons/g_flamethrower/tris"))
 	{
-		loadmodel->simple_texnum = s_item20->texnum;
+		loadmodel->simple_texnum = s_item20->index;
 	}
 	else if (!Q_strcasecmp (shortname, "models/weapons/g_smartgun/tris"))
 	{
-		loadmodel->simple_texnum = s_item21->texnum;
+		loadmodel->simple_texnum = s_item21->index;
 	}
 	else if (!Q_strcasecmp (shortname, "models/weapons/g_chaingun/tris"))
 	{
-		loadmodel->simple_texnum = s_item22->texnum;
+		loadmodel->simple_texnum = s_item22->index;
 	}
 	else if (!Q_strcasecmp (shortname, "models/weapons/g_rocket/tris"))
 	{
-		loadmodel->simple_texnum = s_item23->texnum;
+		loadmodel->simple_texnum = s_item23->index;
 	}
 	else if (!Q_strcasecmp (shortname, "models/weapons/g_minderaser/tris"))
 	{
-		loadmodel->simple_texnum = s_item24->texnum;
+		loadmodel->simple_texnum = s_item24->index;
 	}
 }

@@ -24,16 +24,23 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "config.h"
 #endif
 
-#include "r_local.h"
-
 #if defined WIN32_VARIANT
 #include <io.h>
 #endif
 
 #define		TOK_DELIMINATORS "\r\n\t "
 
+
+#include <cstring>
+#include <memory>
+#include "asset_manager.hpp"
+
+extern "C" {
+
+#include "r_local.h"
+
 float		rs_realtime = 0;
-rscript_t	*rs_rootscript = NULL;
+rscript_t	*rs_rootscript = nullptr;
 
 static int RS_Animate (rs_stage_t *stage)
 {
@@ -49,7 +56,7 @@ static int RS_Animate (rs_stage_t *stage)
 
 	stage->last_anim = anim;
 
-	return anim->texture->texnum;
+	return anim->texture->index;
 }
 
 static void RS_ResetScript (rscript_t *rs)
@@ -225,18 +232,15 @@ void RS_FreeAllScripts (void)
 	}
 }
 
-void RS_ReloadImageScriptLinks (void)
-{
-	image_t		*image;
-	int			i;
-	char		shortname[MAX_QPATH];
+void RS_ReloadImageScriptLinks() {
+  asset_manager::IterateGroup(asset_manager::AssetType::Texture,
+                              [](void *data) {
+                                image_t *image = static_cast<image_t *>(data);
+                                char shortname[MAX_QPATH];
 
-	for (i=0, image=gltextures ; i<numgltextures ; i++,image++)
-	{
-		COM_StripExtension (image->name, shortname);
-		image->script = RS_FindScript (shortname);
-	}
-
+                                COM_StripExtension(image->name, shortname);
+                                image->script = RS_FindScript(shortname);
+                              });
 }
 
 void RS_FreeScript(rscript_t *rs)
@@ -264,27 +268,24 @@ void RS_FreeScript(rscript_t *rs)
 	free (rs);
 }
 
-void RS_FreeUnmarked (void)
-{
-	image_t		*image;
-	int			i;
-	rscript_t	*rs = rs_rootscript, *tmp_rs;
+void RS_FreeUnmarked() {
+  rscript_t *rs = rs_rootscript, *tmp_rs;
 
-	for (i=0, image=gltextures ; i<numgltextures ; i++,image++)
-	{
-		if (image->script && !((rscript_t *)image->script)->dontflush)
-			image->script = NULL;
-	}
-	
-	while (rs != NULL)
-	{
-		tmp_rs = rs->next;
+  asset_manager::IterateGroup(
+      asset_manager::AssetType::Texture, [](void *data) {
+        image_t *image = static_cast<image_t *>(data);
+        if (image->script && !((rscript_t *)image->script)->dontflush)
+          image->script = NULL;
+      });
 
-		if (!rs->dontflush)
-			RS_FreeScript(rs);
+  while (rs != NULL) {
+    tmp_rs = rs->next;
 
-		rs = tmp_rs;
-	}
+    if (!rs->dontflush)
+      RS_FreeScript(rs);
+
+    rs = tmp_rs;
+  }
 }
 
 rscript_t *RS_FindScript(char *name)
@@ -314,7 +315,7 @@ void RS_ReadyScript (rscript_t *rs)
 	rs_stage_t		*stage;
 	anim_stage_t	*anim;
 	random_stage_t	*randStage;
-	char			mode;
+	imagetype_t			mode;
 	int				i;
 
 	if (rs->ready)
@@ -649,12 +650,12 @@ static rs_cond_op_key_t rs_cond_op_keys[] =
 	{	"&&",	rs_cond_and		},
 	{	"||",	rs_cond_or		},
 	
-	{	NULL,	0				}
+	{	NULL,	rs_cond_none    }
 };
 static rs_cond_val_t *rs_stage_if_subexpr (char **token)
 {
 	int i;
-	rs_cond_val_t *res = Z_Malloc (sizeof(rs_cond_val_t));
+	rs_cond_val_t *res = static_cast<rs_cond_val_t*>(Z_Malloc (sizeof(rs_cond_val_t)));
 	*token = strtok (NULL, TOK_DELIMINATORS);
 	if (!(*token)) 
 	{
@@ -852,7 +853,7 @@ static void rs_stage_consume0 (rs_stage_t *stage, char **token)
 
 static struct 
 {
-	char *stage;
+	const char *stage;
 	void (*func)(rs_stage_t *shader, char **token);
 } rs_stagekeys[] =
 {
@@ -1345,12 +1346,12 @@ void RS_Draw (	rscript_t *rs, const entity_t *ent, int lmtex, vec2_t rotate_cent
 			GL_MBind (1, lmtex);
 		
 	 	if (stage->num_blend_textures > 3)
-	 		GL_MBind (2, stage->texture2->texnum);
+	 		GL_MBind (2, stage->texture2->index);
 		
 		if (stage->anim_count)
 			GL_MBind (0, RS_Animate(stage));
 		else
-	 		GL_MBind (0, stage->texture->texnum);
+	 		GL_MBind (0, stage->texture->index);
 	 	
 	 	GL_SelectTexture (0);
 		qglPushMatrix ();
@@ -1415,7 +1416,7 @@ void RS_Draw (	rscript_t *rs, const entity_t *ent, int lmtex, vec2_t rotate_cent
 		if (stage->num_blend_textures > 0)
 		{
 			for (i = 0; i < stage->num_blend_textures; i++)
-				GL_MBind (3+i, stage->blend_textures[i]->texnum);
+				GL_MBind (3+i, stage->blend_textures[i]->index);
 			
 			glUniform2fvARB (rscript_uniforms[dynamic].blendscales, stage->num_blend_textures, (const GLfloat *) stage->blend_scales);
 		}
@@ -1423,7 +1424,7 @@ void RS_Draw (	rscript_t *rs, const entity_t *ent, int lmtex, vec2_t rotate_cent
 		if (stage->num_blend_normalmaps > 0)
 		{
 			for (i = 0; i < stage->num_blend_normalmaps; i++)
-				GL_MBind (9+i, stage->blend_normalmaps[i]->texnum);
+				GL_MBind (9+i, stage->blend_normalmaps[i]->index);
 			
 			glUniform1ivARB (rscript_uniforms[dynamic].normalblendindices, stage->num_blend_normalmaps, (const GLint *) stage->normalblend_indices);
 		}
@@ -1462,7 +1463,7 @@ void RS_Draw (	rscript_t *rs, const entity_t *ent, int lmtex, vec2_t rotate_cent
 
 void RS_DrawSurface (msurface_t *surf, rscript_t *rs)
 {
-	int			lmtex = gl_state.lightmap_textures + surf->lightmaptexturenum;
+	int			lmtex = LIGHTMAP_BIND_BEGIN + surf->lightmaptexturenum;
 	vec2_t		rotate_center;
 	qboolean	translucent;
 	
@@ -1492,4 +1493,5 @@ void RS_LoadSpecialScripts (void) //the special case of water caustics
 	if(rs_caustics)
 		RS_ReadyScript(rs_caustics);
 	assert ((rs_caustics->flags & RS_PREVENT_BATCH) == 0);
+}
 }

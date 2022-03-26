@@ -70,14 +70,13 @@ void AnglesToMatrix3x3_Backwards (const vec3_t angles, float rotation_matrix[3][
 // are rewritten to refer to the new composite lightmap for the decal. The
 // vertex is also marked with what lightmap texture it's in. All verts in a
 // single triangle must have the same lightmap texture.
-typedef struct
- {
-	enum {lmsrc_tex, lmsrc_ent} type;
-	union
-	{
-		int			texnum;
-		entity_t	*ent;
-	};
+typedef struct {
+  enum { lmsrc_tex_ptr, lmsrc_tex, lmsrc_ent } type;
+  union {
+    unsigned textureIndex;
+    image_t *texture;
+    entity_t *ent;
+  };
 } lightmapsource_t;
 #define srcequal(a,b) (!memcmp (&(a), &(b), sizeof (lightmapsource_t)))
 typedef struct
@@ -263,8 +262,8 @@ static void Mod_AddTerrainToDecalModel (const decalorientation_t *pos, entity_t 
 	// All verts from the same terrain mesh have the same lightmap texture
 	if (terrainmodel->lightmap != NULL)
 	{
-		src.type = lmsrc_tex;
-		src.texnum = terrainmodel->lightmap->texnum;
+		src.type = lmsrc_tex_ptr;
+		src.texture = terrainmodel->lightmap;
 	}
 	else
 	{
@@ -335,7 +334,7 @@ static void Mod_AddBSPToDecalModel (const decalorientation_t *pos, decalprogress
 		in.inputverts = Z_Malloc (in.nverts * sizeof(*in.inputverts));
 		
 		src.type = lmsrc_tex;
-		src.texnum = surf->lightmaptexturenum + TEXNUM_LIGHTMAPS;
+		src.textureIndex = LIGHTMAP_BIND_BEGIN + surf->lightmaptexturenum;
 		
 		for (vertnum = 0, v = surf->polys->verts[0]; vertnum < in.nverts; vertnum++, v += VERTEXSIZE)
 		{
@@ -741,17 +740,17 @@ static decal_vertgroup_t *GenerateLightmapTexcoords (decalprogress_t *out, model
 				texsize[1] = mod->skins[0]->height / 2;
 			}
 		}
-		else if (src.texnum >= TEXNUM_LIGHTMAPS && src.texnum < TEXNUM_LIGHTMAPS + MAX_LIGHTMAPS)
+		else if (src.type == lmsrc_tex)
 		{
 			// BSP lightmap
 			texsize[0] = texsize[1] = LIGHTMAP_SIZE;
 		}
-		else if (src.texnum >= TEXNUM_IMAGES && src.texnum < TEXNUM_IMAGES + MAX_GLTEXTURES)
+		else
 		{
 			// underlying lightmap texture is allocated as a regular texture (as
 			// it would be on a terrain mesh.)
-			texsize[0] = gltextures[src.texnum - TEXNUM_IMAGES].width;
-			texsize[1] = gltextures[src.texnum - TEXNUM_IMAGES].height;
+			texsize[0] = src.texture->width;
+			texsize[1] = src.texture->height;
 		}
 		
 		for (j = 0; j < 2; j++)
@@ -862,7 +861,7 @@ static void GenerateLightmapTexture (model_t *mod, decal_vertgroup_t *groups, in
 	lightmap_aux = GL_FindFreeImage ("***decal_lightmap_temp***", final_size[0], final_size[1], it_lightmap);
 
 	GL_SelectTexture (0);
-	GL_Bind (lightmap_aux->texnum);
+	GL_Bind (lightmap_aux->index);
 	
 	qglTexImage2D (GL_TEXTURE_2D, 0, gl_tex_alpha_format, final_size[0], final_size[1], 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 	qglTexParameterf (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -871,7 +870,7 @@ static void GenerateLightmapTexture (model_t *mod, decal_vertgroup_t *groups, in
 	qglTexParameterf (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 	
 	qglBindFramebufferEXT (GL_DRAW_FRAMEBUFFER_EXT, new_lm_fbo);
-	qglFramebufferTexture2DEXT (GL_DRAW_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, lightmap_aux->texnum, 0);
+	qglFramebufferTexture2DEXT (GL_DRAW_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, lightmap_aux->index, 0);
 	qglViewport (0, 0, final_size[0], final_size[1]);
 	qglClearColor (0.75, 0.75, 0.75, 0.0);
 	qglClear (GL_COLOR_BUFFER_BIT);
@@ -917,8 +916,10 @@ static void GenerateLightmapTexture (model_t *mod, decal_vertgroup_t *groups, in
 			qglEnable (GL_DEPTH_TEST);
 			continue;
 		}
-		
-		qglFramebufferTexture2DEXT (GL_READ_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, groups[i].src.texnum, 0);
+
+		unsigned texnum = groups[i].src.type == lmsrc_tex ? groups[i].src.textureIndex : groups[i].src.texture->index;
+
+		qglFramebufferTexture2DEXT (GL_READ_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, texnum, 0);
 		qglBlitFramebufferEXT (
 				groups[i].orig_int_mins[0], groups[i].orig_int_mins[1],
 				groups[i].orig_int_maxs[0], groups[i].orig_int_maxs[1],
@@ -931,7 +932,7 @@ static void GenerateLightmapTexture (model_t *mod, decal_vertgroup_t *groups, in
 	Com_sprintf (lm_tex_name, sizeof (lm_tex_name), "***decal_lightmap_%d***", num_lm_texes++);
 	mod->lightmap = GL_FindFreeImage (lm_tex_name, final_size[0], final_size[1], it_lightmap);
 
-	GL_Bind (mod->lightmap->texnum);
+	GL_Bind (mod->lightmap->index);
 	
 	qglTexImage2D (GL_TEXTURE_2D, 0, gl_tex_solid_format, final_size[0], final_size[1], 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 	
@@ -940,8 +941,8 @@ static void GenerateLightmapTexture (model_t *mod, decal_vertgroup_t *groups, in
 	qglTexParameterf (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter_min);
 	qglTexParameterf (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_filter_max);
 
-	GL_Bind (lightmap_aux->texnum);
-	qglFramebufferTexture2DEXT (GL_DRAW_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, mod->lightmap->texnum, 0);
+	GL_Bind (lightmap_aux->index);
+	qglFramebufferTexture2DEXT (GL_DRAW_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, mod->lightmap->index, 0);
 	qglViewport (0, 0, final_size[0], final_size[1]);
 
 	glUseProgramObjectARB (g_defringeprogramObj);
@@ -969,7 +970,7 @@ static void GenerateLightmapTexture (model_t *mod, decal_vertgroup_t *groups, in
 	glUseProgramObjectARB (0);
 	R_KillVArrays ();
 
-	GL_Bind (mod->lightmap->texnum);
+	GL_Bind (mod->lightmap->index);
 	qglGenerateMipmapEXT (GL_TEXTURE_2D);
 	
 	R_SetupViewport ();

@@ -667,7 +667,7 @@ static void _TTF_PrepareToDraw( image_t * texture )
 	qglPushMatrix( );
 
 	// Prepare texture
-	GL_Bind( texture->texnum );
+	GL_Bind( texture->index );
 	GL_TexEnv( GL_MODULATE );
 	qglLoadIdentity();
 	qglScaled( 1.0 / texture->width , 1.0 / texture->height , 1 );

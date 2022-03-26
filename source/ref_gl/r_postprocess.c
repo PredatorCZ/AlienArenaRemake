@@ -71,7 +71,7 @@ image_t *R_Postprocess_AllocFBOTexture (char *name, int width, int height, GLuin
 	
 	// create the texture
 	image = GL_FindFreeImage (name, width, height, it_pic);
-	GL_Bind (image->texnum);
+	GL_Bind (image->index);
 	qglTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 	qglTexImage2D (GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
 	qglTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
@@ -82,7 +82,7 @@ image_t *R_Postprocess_AllocFBOTexture (char *name, int width, int height, GLuin
 	qglBindFramebufferEXT (GL_FRAMEBUFFER_EXT, *FBO);
 
 	// bind the texture to it
-	qglFramebufferTexture2DEXT (GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, image->texnum, 0);
+	qglFramebufferTexture2DEXT (GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, image->index, 0);
 	
 	// clean up 
 	free (data);
@@ -108,7 +108,7 @@ static void Distort_RenderQuad (int x, int y, int w, int h)
 	GLSTATE_DISABLE_BLEND
 	qglDisable (GL_DEPTH_TEST);
 	
-	GL_MBind (0, r_framebuffer->texnum);
+	GL_MBind (0, r_framebuffer->index);
 	
 	// Ie need to grab the frame buffer. If we're not working with the whole
 	// framebuffer, copy a margin to avoid artifacts
@@ -188,7 +188,7 @@ void R_GLSLDistortion(void)
 		glUniform1iARB (distort_uniforms.framebuffTex, 0);
 
 		if(r_distortwave)
-			GL_MBind (1, r_distortwave->texnum);
+			GL_MBind (1, r_distortwave->index);
 		glUniform1iARB (distort_uniforms.distortTex, 1);
 
 		// get positions of bounds of warp area
@@ -261,7 +261,7 @@ void R_GLSLWaterDroplets(void)
 
 	glUniform1iARB( g_location_drSource, 0);
 
-	GL_MBind (1, r_droplets->texnum);
+	GL_MBind (1, r_droplets->index);
 	glUniform1iARB( g_location_drTex, 1);
 
 	glUniform1fARB( g_location_drTime, rs_realtime);
@@ -279,10 +279,10 @@ void R_GLSLDOF(void)
 
 	glUniform1iARB(g_location_dofSource, 0);
 
-	GL_MBind(1, r_depthbuffer->texnum);
+	GL_MBind(1, r_depthbuffer->index);
 	glUniform1iARB(g_location_dofDepth, 1);
 
-	GL_MBind(0, r_colorbuffer->texnum);
+	GL_MBind(0, r_colorbuffer->index);
 	glUniform1iARB(g_location_dofSource, 0);
 
 	//render quad 
@@ -327,13 +327,13 @@ void R_GenPPFrameBuffer(void)
 
 	// Create color texture
 	qglGenTextures(1, &pp_FBO);
-	qglBindTexture(GL_TEXTURE_2D, r_colorbuffer->texnum);
+	qglBindTexture(GL_TEXTURE_2D, r_colorbuffer->index);
 	qglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 	qglTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, vid.width, vid.height, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
 
 	// Create depth texture
 	qglGenTextures(1, &ppDepth_FBO);
-	qglBindTexture(GL_TEXTURE_2D, r_depthbuffer->texnum);
+	qglBindTexture(GL_TEXTURE_2D, r_depthbuffer->index);
 	qglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	qglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	qglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -341,8 +341,8 @@ void R_GenPPFrameBuffer(void)
 	qglTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, vid.width, vid.height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
 
 	// Attach textures to buffers
-	qglFramebufferTexture2DEXT(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, r_colorbuffer->texnum, 0);
-	qglFramebufferTexture2DEXT(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, r_depthbuffer->texnum, 0);
+	qglFramebufferTexture2DEXT(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, r_colorbuffer->index, 0);
+	qglFramebufferTexture2DEXT(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, r_depthbuffer->index, 0);
 
 	if (qglCheckFramebufferStatusEXT(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 		printf("framebuffer failed!\n");
@@ -373,7 +373,7 @@ void R_FB_InitTextures( void )
 	r_depthbuffer = GL_LoadPic ("***r_depthbuffer***", data, vid.width, vid.height, it_pic, 3);	
 
 	//FBO for capturing stencil volumes
-	qglBindTexture(GL_TEXTURE_2D, r_colorbuffer->texnum);
+	qglBindTexture(GL_TEXTURE_2D, r_colorbuffer->index);
 	qglTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, vid.width, vid.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 	qglBindTexture(GL_TEXTURE_2D, 0);
 
@@ -381,7 +381,7 @@ void R_FB_InitTextures( void )
 	qglBindFramebufferEXT(GL_FRAMEBUFFER_EXT, godray_FBO);	
 
 	// attach a texture to FBO color attachement point
-	qglFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, r_colorbuffer->texnum, 0);
+	qglFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, r_colorbuffer->index, 0);
 
 	// attach a renderbuffer to depth attachment point
 	qglFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, godray_FBO);
@@ -440,7 +440,7 @@ void R_DrawBloodEffect (void)
 
 	GLSTATE_ENABLE_BLEND
 
-	GL_MBind (0, gl->texnum);
+	GL_MBind (0, gl->index);
 		
 	qglMatrixMode( GL_PROJECTION );
     qglLoadIdentity ();
@@ -581,7 +581,7 @@ void R_GLSLGodRays(void)
 
 	glUseProgramObjectARB( g_godraysprogramObj );
 
-	GL_MBind (0, r_colorbuffer->texnum);
+	GL_MBind (0, r_colorbuffer->index);
 
 	glUniform1iARB( g_location_sunTex, 0);
 

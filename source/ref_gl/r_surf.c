@@ -33,6 +33,7 @@ static vec3_t	modelorg;		// relative to viewpoint
 vec3_t	r_worldLightVec;
 
 #define LIGHTMAP_BYTES 4
+#define	MAX_LIGHTMAPS  12
 
 int		c_visible_lightmaps;
 int		c_visible_textures;
@@ -466,7 +467,7 @@ static void BSP_DrawWarpSurfaces (qboolean forEnt)
 	{
 		c_brush_polys++;
 		image = BSP_TextureAnimation (surf->texinfo);
-		GL_MBind (0, image->texnum);
+		GL_MBind (0, image->index);
 		BSP_SetScrolling ((surf->texinfo->flags & SURF_FLOWING) != 0);
 		R_RenderWaterPolys (surf);
 		surf = surf->texturechain;
@@ -535,7 +536,7 @@ static void R_DrawAlphaSurfaces_chain (msurface_t *chain)
 		int			current_surf_type;
 		mtexinfo_t	*current_texinfo = s->texinfo;
 		
-		GL_MBind (0, s->texinfo->image->texnum);
+		GL_MBind (0, s->texinfo->image->index);
 		c_brush_polys++;
 
 		//moving trans brushes
@@ -637,7 +638,7 @@ static void R_DrawRSSurfaces (void)
 				BSP_AddSurfToVBOAccum (s);
 			
 			RS_Draw (	rs_caustics, currententity,
-						gl_state.lightmap_textures + currLMTex,
+						LIGHTMAP_BIND_BEGIN + currLMTex,
 						vec3_origin, vec3_origin, false,
 						rs_lightmap_separate_texcoords, 
 						false, false, BSP_DrawVBOAccum );
@@ -685,7 +686,7 @@ static void R_DrawRSSurfaces (void)
 						BSP_AddSurfToVBOAccum (s);
 				
 					RS_Draw (	rs, currententity,
-								gl_state.lightmap_textures + currLMTex,
+								LIGHTMAP_BIND_BEGIN + currLMTex,
 								vec3_origin, vec3_origin, false,
 								rs_lightmap_separate_texcoords, 
 								true, true, BSP_DrawVBOAccum );
@@ -801,10 +802,10 @@ static void BSP_TexinfoChanged (mtexinfo_t *texinfo, qboolean glsl, int dynamic)
 	
 	if (glsl)
 		// no texture animation for normalmapped surfaces, for some reason
-		texnum = texinfo->image->texnum;
+		texnum = texinfo->image->index;
 	else
 		// do this here so only have to do it once instead of for each surface
-		texnum = BSP_TextureAnimation( texinfo )->texnum;
+		texnum = BSP_TextureAnimation( texinfo )->index;
 	
 	GL_MBind (0, texnum);
 	
@@ -819,8 +820,8 @@ static void BSP_TexinfoChanged (mtexinfo_t *texinfo, qboolean glsl, int dynamic)
 		return;
 	}
 	
-	GL_MBind (2, texinfo->heightMap->texnum);
-	GL_MBind (3, texinfo->normalMap->texnum);
+	GL_MBind (2, texinfo->heightMap->index);
+	GL_MBind (3, texinfo->normalMap->index);
 	
 		if (dynamic)
 	{
@@ -861,9 +862,9 @@ static void BSP_TexinfoChanged (mtexinfo_t *texinfo, qboolean glsl, int dynamic)
 		glUniform1iARB (worldsurf_uniforms[dynamic].shiny, 0);
 		glUniform1fARB (worldsurf_uniforms[dynamic].rsTime, rs_realtime);
 		glUniform1iARB (worldsurf_uniforms[dynamic].liquidTexture, 4); //for blood we are going to need to send a diffuse texture with it
-		GL_MBind (4, r_blooddroplets->texnum);
+		GL_MBind (4, r_blooddroplets->index);
 		glUniform1iARB (worldsurf_uniforms[dynamic].liquidNormTex, 5); 
-		GL_MBind (5, r_blooddroplets_nm->texnum);
+		GL_MBind (5, r_blooddroplets_nm->index);
 	}
 	else if (texinfo->flags & SURF_WATER) 
 	{
@@ -872,7 +873,7 @@ static void BSP_TexinfoChanged (mtexinfo_t *texinfo, qboolean glsl, int dynamic)
 		glUniform1iARB (worldsurf_uniforms[dynamic].shiny, 0);
 		glUniform1fARB (worldsurf_uniforms[dynamic].rsTime, rs_realtime);
 		glUniform1iARB (worldsurf_uniforms[dynamic].liquidNormTex, 4); //for blood we are going to need to send a diffuse texture with it(maybe even height!)
-		GL_MBind (4, r_droplets->texnum);
+		GL_MBind (4, r_droplets->index);
 	}
 	else if (texinfo->flags & SURF_SHINY)
 	{
@@ -880,7 +881,7 @@ static void BSP_TexinfoChanged (mtexinfo_t *texinfo, qboolean glsl, int dynamic)
 		glUniform1iARB (worldsurf_uniforms[dynamic].shiny, 1);
 
 		glUniform1iARB (worldsurf_uniforms[dynamic].chromeTex, 4);
-		GL_MBind (4, r_mirrorspec->texnum);
+		GL_MBind (4, r_mirrorspec->index);
 	}
 	else if (!r_currTexInfo || r_currTexInfo->flags & (SURF_BLOOD|SURF_WATER|SURF_SHINY))
 	{
@@ -907,7 +908,7 @@ static void BSP_RenderLightmappedPoly( msurface_t *surf, qboolean glsl)
 	if (lmtex != r_currLMTex)
 	{
 		BSP_FlushVBOAccum ();
-		GL_MBind (1, gl_state.lightmap_textures + lmtex);
+		GL_MBind (1, LIGHTMAP_BIND_BEGIN + lmtex);
 		r_currLMTex = lmtex;
 	}
 	
@@ -1953,7 +1954,7 @@ static void LM_UploadBlock (void)
 	int texture = gl_lms.current_lightmap_texture;
 
 	GL_SelectTexture (0);
-	GL_Bind( gl_state.lightmap_textures + texture );
+	GL_Bind( LIGHTMAP_BIND_BEGIN + texture );
 	qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	
@@ -2208,7 +2209,7 @@ static void BSP_UpdateSurfaceLightmap (msurface_t *surf)
 	R_BuildLightMap (surf, gl_lms.lightmap_buffer, surf->lightmaxs[0], surf->lightmaxs[1], surf->lightmaxs[0]*LIGHTMAP_BYTES);
 	
 	GL_SelectTexture (0);
-	GL_Bind( gl_state.lightmap_textures + surf->lightmaptexturenum );
+	GL_Bind(LIGHTMAP_BIND_BEGIN + surf->lightmaptexturenum);
 	qglTexSubImage2D( GL_TEXTURE_2D, 
 					  0,
 					  surf->lightmins[0], surf->lightmins[1],
@@ -2244,9 +2245,6 @@ void BSP_BeginBuildingLightmaps (model_t *m)
 		lightstyles[i].white = 3;
 	}
 	r_newrefdef.lightstyles = lightstyles;
-
-	if (!gl_state.lightmap_textures)
-		gl_state.lightmap_textures	= TEXNUM_LIGHTMAPS;
 
 	gl_lms.current_lightmap_texture = 1;
 
@@ -2353,7 +2351,7 @@ void R_DrawRadar(void)
 	qglColor4f(1,1,1,1);
 	if(r_around)
 	{
-		GL_Bind (r_around->texnum);
+		GL_Bind (r_around->index);
 		GL_SetupWholeScreen2DVBO (wholescreen_textured);
 		R_DrawVarrays (GL_QUADS, 0, 4);
 		R_KillVArrays ();

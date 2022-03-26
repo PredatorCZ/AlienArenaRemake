@@ -103,7 +103,7 @@ static void R_Bloom_InitEffectTexture (void)
 	r_bloomeffecttexture = R_Postprocess_AllocFBOTexture ("***r_bloomeffecttexture***", BLOOM_WIDTH, BLOOM_HEIGHT, &bloomeffectFBO);
 
 	r_bloomcoloraveragingtexture = R_Postprocess_AllocFBOTexture ("***r_bloomcoloraveragingtexture***", BLOOM_WIDTH, BLOOM_HEIGHT, &bloomcoloraveragingFBO);
-	GL_Bind (r_bloomcoloraveragingtexture->texnum);
+	GL_Bind (r_bloomcoloraveragingtexture->index);
 	coloraverage_valid = false;
 	qglTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1000);
 	GL_Bind (0);
@@ -180,7 +180,7 @@ R_Bloom_DrawEffect
 static void R_Bloom_DrawEffect (void)
 {
 	GL_SelectTexture (0);
-	GL_Bind (r_bloomeffecttexture->texnum);
+	GL_Bind (r_bloomeffecttexture->index);
 	GLSTATE_ENABLE_BLEND
 	GL_BlendFunction (GL_ONE, GL_ONE);
 	qglColor4f(r_bloom_alpha->value, r_bloom_alpha->value, r_bloom_alpha->value, 1.0f);
@@ -250,7 +250,7 @@ static void R_Bloom_DoGaussian (void)
 		qglBlitFramebufferEXT (0, 0, BLOOM_WIDTH, BLOOM_HEIGHT,
 		                       0, 0, BLOOM_WIDTH, BLOOM_HEIGHT,
 							   GL_COLOR_BUFFER_BIT, GL_NEAREST);
-		GL_MBind (0, r_bloomcoloraveragingtexture->texnum);
+		GL_MBind (0, r_bloomcoloraveragingtexture->index);
 		qglGenerateMipmapEXT (GL_TEXTURE_2D);
 		qglGetTexImage (GL_TEXTURE_2D, BLOOM_NUM_MIPMAPS, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 		coloraverage_valid = true; // any time after this, we could read from the rbo
@@ -266,7 +266,7 @@ static void R_Bloom_DoGaussian (void)
 		brightness -= brightness_reverse_bias;
 
 		//apply the color scaling
-		GL_MBind (0, r_bloomeffecttexture->texnum);
+		GL_MBind (0, r_bloomeffecttexture->index);
 		qglBindFramebufferEXT (GL_FRAMEBUFFER_EXT, bloomscratchFBO);
 		glUseProgramObjectARB (g_colorscaleprogramObj);
 		glUniform1iARB (colorscale_uniforms.source, 0);
@@ -275,7 +275,7 @@ static void R_Bloom_DoGaussian (void)
 		qglCopyTexSubImage2D (GL_TEXTURE_2D, 0, 0, 0, 0, 0, BLOOM_WIDTH, BLOOM_HEIGHT);
 	}
 
-	GL_MBind (0, r_bloomeffecttexture->texnum);
+	GL_MBind (0, r_bloomeffecttexture->index);
 	qglBindFramebufferEXT (GL_FRAMEBUFFER_EXT, bloomscratchFBO);
 
 	//darkening passes
@@ -315,7 +315,7 @@ static void R_Bloom_DoGaussian (void)
 		// but hurts performance.
 		for (j = 0; j < 2; j++)
 		{
-			GL_MBind (0, r_bloomscratchtexture->texnum);
+			GL_MBind (0, r_bloomscratchtexture->index);
 			qglBindFramebufferEXT (GL_FRAMEBUFFER_EXT, bloomscratch2FBO);
 			glUniform2fARB (kawase_uniforms.scale, scale / BLOOM_WIDTH, scale / BLOOM_HEIGHT);
 			R_DrawVarrays (GL_QUADS, 0, 4);
@@ -337,7 +337,7 @@ static void R_Bloom_DoGaussian (void)
 	GL_BlendFunction (GL_ONE, GL_ONE);
 	GLSTATE_ENABLE_BLEND
 	
-	GL_MBind (0, r_bloomscratchtexture->texnum);
+	GL_MBind (0, r_bloomscratchtexture->index);
 	qglBindFramebufferEXT (GL_FRAMEBUFFER_EXT, bloomeffectFBO);
 	R_DrawVarrays (GL_QUADS, 0, 4);
 	

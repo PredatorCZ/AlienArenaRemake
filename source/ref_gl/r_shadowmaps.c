@@ -125,7 +125,7 @@ void R_GenerateShadowFBO()
 	for (i = 0; i < deptex_num; i++)
 	{
 		//FBO for shadowmapping
-		qglBindTexture(GL_TEXTURE_2D, r_depthtextures[i]->texnum);
+		qglBindTexture(GL_TEXTURE_2D, r_depthtextures[i]->index);
 
 		// GL_LINEAR removes pixelation - GL_NEAREST removes artifacts on outer edges in some cases
 		if (i == deptex_dynamic)
@@ -170,7 +170,7 @@ void R_GenerateShadowFBO()
 		qglReadBuffer(GL_NONE);
 
 		// attach the texture to FBO depth attachment point
-		qglFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT,GL_TEXTURE_2D, r_depthtextures[i]->texnum, 0);
+		qglFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT,GL_TEXTURE_2D, r_depthtextures[i]->index, 0);
 
 		// check FBO status
 		FBOstatus = qglCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
@@ -934,7 +934,7 @@ void R_DrawVegetationCasters ( qboolean forShadows )
 		{
 			r_sunShadowsOn = forShadows;
 			
-			GL_Bind (grass->tex->texnum);
+			GL_Bind (grass->tex->index);
 			
 			R_DrawVarrays (GL_QUADS, grass->vbo_first_vert, grass->vbo_num_verts);
 		}
@@ -1246,7 +1246,7 @@ void R_SetShadowmapUniforms (shadowmap_uniform_location_t *uniforms, int tmu, qb
 		{
 			float offs = 1.0 / r_depthtextures[deptex_sunstatic]->upload_width;
 			glUniform1fARB (uniforms->sunStatic.pixelOffset, offs);
-			GL_MBind (tmu, r_depthtextures[deptex_sunstatic]->texnum);
+			GL_MBind (tmu, r_depthtextures[deptex_sunstatic]->index);
 			glUniform1iARB (uniforms->sunStatic.texture, tmu++);
 		}
 	}
@@ -1258,7 +1258,7 @@ void R_SetShadowmapUniforms (shadowmap_uniform_location_t *uniforms, int tmu, qb
 		{
 			float offs = 1.0 / r_depthtextures[deptex_otherstatic]->upload_width;
 			glUniform1fARB (uniforms->otherStatic.pixelOffset, offs);
-			GL_MBind (tmu, r_depthtextures[deptex_otherstatic]->texnum);
+			GL_MBind (tmu, r_depthtextures[deptex_otherstatic]->index);
 			glUniform1iARB (uniforms->otherStatic.texture, tmu++);
 		}
 	}
@@ -1267,7 +1267,7 @@ void R_SetShadowmapUniforms (shadowmap_uniform_location_t *uniforms, int tmu, qb
 	{
 		float offs = 1.0 / r_depthtextures[deptex_dynamic]->upload_width;
 		glUniform1fARB (uniforms->dynamic.pixelOffset, offs);
-		GL_MBind (tmu, r_depthtextures[deptex_dynamic]->texnum);
+		GL_MBind (tmu, r_depthtextures[deptex_dynamic]->index);
 		glUniform1iARB (uniforms->dynamic.texture, tmu++);
 	}
 }

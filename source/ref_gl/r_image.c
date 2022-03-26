@@ -26,7 +26,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // for jpeglib
 #define HAVE_PROTOTYPES
 
+
 #include "r_local.h"
+
 
 #if defined HAVE_JPEG_JPEGLIB_H
 #include "jpeg/jpeglib.h"
@@ -34,11 +36,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "jpeglib.h"
 #endif
 
-static char deptex_names[deptex_num][32];
-
-image_t		gltextures[MAX_GLTEXTURES];
 image_t		*r_mirrortexture;
-int			numgltextures;
 
 extern cvar_t	*cl_hudimage1; //custom huds
 extern cvar_t	*cl_hudimage2;
@@ -52,12 +50,6 @@ qboolean GL_Upload32 (byte *data, int width, int height, int picmip, qboolean fi
 
 int		gl_solid_format = 3;
 int		gl_alpha_format = 4;
-
-int		gl_tex_solid_format = 3;
-int		gl_tex_alpha_format = 4;
-
-int		gl_filter_min = GL_LINEAR_MIPMAP_LINEAR;
-int		gl_filter_max = GL_LINEAR;
 
 void R_InitImageSubsystem(void)
 {
@@ -267,262 +259,6 @@ void GL_InvalidateTextureState (void)
 	gl_state.currenttmu_defined = false;
 	memset (gl_state.currenttexturemodes, -1, sizeof(gl_state.currenttexturemodes));
 	memset (gl_state.currenttextures, -1, sizeof(gl_state.currenttextures));
-}
-
-typedef struct
-{
-	char *name;
-	int	minimize, maximize;
-} glmode_t;
-
-glmode_t modes[] = {
-	{"GL_NEAREST", GL_NEAREST, GL_NEAREST},
-	{"GL_LINEAR", GL_LINEAR, GL_LINEAR},
-	{"GL_NEAREST_MIPMAP_NEAREST", GL_NEAREST_MIPMAP_NEAREST, GL_NEAREST},
-	{"GL_LINEAR_MIPMAP_NEAREST", GL_LINEAR_MIPMAP_NEAREST, GL_LINEAR},
-	{"GL_NEAREST_MIPMAP_LINEAR", GL_NEAREST_MIPMAP_LINEAR, GL_NEAREST},
-	{"GL_LINEAR_MIPMAP_LINEAR", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR}
-};
-
-#define NUM_GL_MODES (sizeof(modes) / sizeof (glmode_t))
-
-typedef struct
-{
-	char *name;
-	int mode;
-} gltmode_t;
-
-gltmode_t gl_alpha_modes[] = {
-	{"default", 4},
-	{"GL_RGBA", GL_RGBA},
-	{"GL_RGBA8", GL_RGBA8},
-	{"GL_RGB5_A1", GL_RGB5_A1},
-	{"GL_RGBA4", GL_RGBA4},
-	{"GL_RGBA2", GL_RGBA2},
-};
-
-#define NUM_GL_ALPHA_MODES (sizeof(gl_alpha_modes) / sizeof (gltmode_t))
-
-gltmode_t gl_solid_modes[] = {
-	{"default", 3},
-	{"GL_RGB", GL_RGB},
-	{"GL_RGB8", GL_RGB8},
-	{"GL_RGB5", GL_RGB5},
-	{"GL_RGB4", GL_RGB4},
-	{"GL_R3_G3_B2", GL_R3_G3_B2},
-#ifdef GL_RGB2_EXT
-	{"GL_RGB2", GL_RGB2_EXT},
-#endif
-};
-
-#define NUM_GL_SOLID_MODES (sizeof(gl_solid_modes) / sizeof (gltmode_t))
-
-/*
-===============
-GL_TextureMode
-===============
-*/
-void GL_TextureMode( char *string )
-{
-	int		i;
-	image_t	*glt;
-
-	for (i=0 ; i< NUM_GL_MODES ; i++)
-	{
-		if ( !Q_strcasecmp( modes[i].name, string ) )
-			break;
-	}
-
-	if (i == NUM_GL_MODES)
-	{
-		Com_Printf ("bad filter name\n");
-		return;
-	}
-
-	gl_filter_min = modes[i].minimize;
-	gl_filter_max = modes[i].maximize;
-
-	GL_SelectTexture (0);
-	
-	// change all the existing mipmap texture objects
-	for (i=0, glt=gltextures ; i<numgltextures ; i++, glt++)
-	{
-		if (glt->type != it_pic && glt->type != it_particle && glt->type != it_sky )
-		{
-			GL_Bind (glt->texnum);
-			qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter_min);
-			qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_filter_max);
-		}
-	}
-}
-
-/*
-===============
-GL_TextureAlphaMode
-===============
-*/
-void GL_TextureAlphaMode( char *string )
-{
-	int		i;
-
-	for (i=0 ; i< NUM_GL_ALPHA_MODES ; i++)
-	{
-		if ( !Q_strcasecmp( gl_alpha_modes[i].name, string ) )
-			break;
-	}
-
-	if (i == NUM_GL_ALPHA_MODES)
-	{
-		Com_Printf ("bad alpha texture mode name\n");
-		return;
-	}
-
-	gl_tex_alpha_format = gl_alpha_modes[i].mode;
-}
-
-/*
-===============
-GL_TextureSolidMode
-===============
-*/
-void GL_TextureSolidMode( char *string )
-{
-	int		i;
-
-	for (i=0 ; i< NUM_GL_SOLID_MODES ; i++)
-	{
-		if ( !Q_strcasecmp( gl_solid_modes[i].name, string ) )
-			break;
-	}
-
-	if (i == NUM_GL_SOLID_MODES)
-	{
-		Com_Printf ("bad solid texture mode name\n");
-		return;
-	}
-
-	gl_tex_solid_format = gl_solid_modes[i].mode;
-}
-
-/*
-===============
-GL_ImageList_f
-===============
-*/
-void	GL_ImageList_f (void)
-{
-	int		i;
-	image_t	*image;
-	int		texels;
-	const char *palstrings[2] =
-	{
-		"RGB",
-		"PAL"
-	};
-
-	Com_Printf ("------------------\n");
-	texels = 0;
-
-	for (i=0, image=gltextures ; i<numgltextures ; i++, image++)
-	{
-		if (image->texnum <= 0)
-			continue;
-		texels += image->upload_width*image->upload_height;
-		switch (image->type)
-		{
-		case it_skin:
-			Com_Printf ("M");
-			break;
-		case it_sprite:
-			Com_Printf ("S");
-			break;
-		case it_wall:
-			Com_Printf ("W");
-			break;
-		case it_pic:
-			Com_Printf ("P");
-			break;
-		case it_particle:
-			Com_Printf ("A");
-			break;
-		default:
-			Com_Printf (" ");
-			break;
-		}
-
-		Com_Printf (" %3i %3i %s: %s\n",
-			image->upload_width, image->upload_height, palstrings[image->paletted], image->name);
-	}
-	Com_Printf ("Total texel count (not counting mipmaps): %i\n", texels);
-}
-
-
-/*
-=============================================================================
-
-  scrap allocation
-
-  Allocate all the little status bar obejcts into a single texture
-  to crutch up inefficient hardware / drivers
-
-=============================================================================
-*/
-
-#define	MAX_SCRAPS		1
-#define	BLOCK_WIDTH		1024
-#define	BLOCK_HEIGHT	512
-
-int			scrap_allocated[MAX_SCRAPS][BLOCK_WIDTH];
-byte		scrap_texels[MAX_SCRAPS][BLOCK_WIDTH*BLOCK_HEIGHT*4];
-
-// returns a texture number and the position inside it
-int Scrap_AllocBlock (int w, int h, int *x, int *y)
-{
-	int		i, j;
-	int		best, best2;
-	int		texnum;
-
-	for (texnum=0 ; texnum<MAX_SCRAPS ; texnum++)
-	{
-		best = BLOCK_HEIGHT;
-
-		for (i=0 ; i<BLOCK_WIDTH-w ; i++)
-		{
-			best2 = 0;
-
-			for (j=0 ; j<w ; j++)
-			{
-				if (scrap_allocated[texnum][i+j] >= best)
-					break;
-				if (scrap_allocated[texnum][i+j] > best2)
-					best2 = scrap_allocated[texnum][i+j];
-			}
-			if (j == w)
-			{	// this is a valid spot
-				*x = i;
-				*y = best = best2;
-			}
-		}
-
-		if (best + h > BLOCK_HEIGHT)
-			continue;
-
-		for (i=0 ; i<w ; i++)
-			scrap_allocated[texnum][*x + i] = best + h;
-
-		return texnum;
-	}
-
-	return -1;
-/*	Sys_Error ("Scrap_AllocBlock: full");*/
-}
-
-static void Scrap_Upload (int texnum)
-{
-	GL_SelectTexture (0);
-
-	GL_Bind (texnum + TEXNUM_SCRAPS);
-	GL_Upload32 (scrap_texels[texnum], BLOCK_WIDTH, BLOCK_HEIGHT, 0, false, false, true);
 }
 
 //just a guessed size-- this isn't necessarily raw RGBA data, it's the
@@ -1087,7 +823,6 @@ int GL_GenerateAlphaMipmaps (byte *data, int width, int height)
 
 int		upload_width, upload_height;
 int		crop_left, crop_right, crop_top, crop_bottom;
-qboolean	uploaded_paletted;
 
 
 qboolean GL_Upload32 (byte *data, int width, int height, int picmip, qboolean filter, qboolean modulate, qboolean force_standard_mipmap)
@@ -1102,7 +837,6 @@ qboolean GL_Upload32 (byte *data, int width, int height, int picmip, qboolean fi
 	if(filter)
 		R_FilterTexture(data, width, height, modulate);
 
-	uploaded_paletted = false;    // scan the texture for any non-255 alpha
 	c = width*height;
 	scan = data + 3;
 	samples = gl_solid_format;
@@ -1258,153 +992,6 @@ qboolean GL_Upload8 (byte *data, int width, int height, int picmip, qboolean fil
 
 /*
 ================
-GL_ReservePic
-
-Find a free image_t
-================
-*/
-image_t *GL_FindFreeImage (const char *name, int width, int height, imagetype_t type)
-{
-	image_t		*image;
-	int			i;
-	
-	// find a free image_t
-	for (i=0, image=gltextures ; i<numgltextures ; i++,image++)
-	{
-		if (!image->texnum)
-			break;
-	}
-	if (i == numgltextures)
-	{
-		if (numgltextures == MAX_GLTEXTURES)
-			Com_Error (ERR_DROP, "MAX_GLTEXTURES");
-		numgltextures++;
-	}
-	image = &gltextures[i];
-
-	if (strlen(name) >= sizeof(image->name))
-		Com_Error (ERR_DROP, "Draw_LoadPic: \"%s\" is too long", name);
-
-	strcpy (image->name, name);
-
-	if ( name[0] != '*' )
-	{ // not a special name, remove the path part
-		strcpy( image->bare_name, COM_SkipPath( name ) );
-	}
-
-	image->registration_sequence = registration_sequence;
-
-	image->width = width;
-	image->height = height;
-	image->type = type;
-	
-	image->texnum = TEXNUM_IMAGES + (image - gltextures);
-	
-	return image;
-}
-
-/*
-================
-GL_LoadPic
-
-This is also used as an entry point for the generated r_notexture
-================
-*/
-image_t *GL_LoadPic (const char *name, byte *pic, int width, int height, imagetype_t type, int bits)
-{
-	image_t		*image;
-	int			i;
-	int			picmip;
-
-	image = GL_FindFreeImage (name, width, height, type);
-
-	if (type == it_skin && bits == 8)
-		R_FloodFillSkin(pic, width, height);
-	
-	if (type == it_particle || type == it_pic)
-		picmip = 0;
-	else
-		picmip = gl_picmip->integer;
-
-	// load little particles into the scrap
-	if (type == it_particle && bits != 8
-		&& image->width <= 128 && image->height <= 128)
-	{
-		int		x, y;
-		int		i, j, k, l;
-		int		texnum;
-
-		texnum = Scrap_AllocBlock (image->width, image->height, &x, &y);
-		if (texnum == -1)
-			goto nonscrap;
-		
-		// copy the texels into the scrap block
-		k = 0;
-		for (i=0 ; i<image->height ; i++)
-			for (j=0 ; j<image->width ; j++)
-			    for (l = 0; l < 4; l++, k++)
-				    scrap_texels[texnum][((y+i)*BLOCK_WIDTH + x + j)*4+l] = pic[k];
-		image->texnum = TEXNUM_SCRAPS + texnum; // overwrite old texnum
-		image->scrap = true;
-		image->has_alpha = true;
-		image->sl = (double)(x+0.5)/(double)BLOCK_WIDTH;
-		image->sh = (double)(x+image->width-0.5)/(double)BLOCK_WIDTH;
-		image->tl = (double)(y+0.5)/(double)BLOCK_HEIGHT;
-		image->th = (double)(y+image->height-0.5)/(double)BLOCK_HEIGHT;
-		
-		// Send updated scrap to OpenGL. Wasteful to do it over and over like
-		// this, but we don't care.
-		Scrap_Upload (texnum);
-	}
-	else
-	{
-nonscrap:
-		image->scrap = false;
-		GL_SelectTexture (0);
-		GL_Bind (image->texnum);
-		if (bits == 8) {
-			image->has_alpha = GL_Upload8 (pic, width, height, picmip, type <= it_wall);
-		} else {
-			image->has_alpha = GL_Upload32 (pic, width, height, picmip, type <= it_wall, type == it_lightmap, type >= it_bump);
-		}
-
-		if (type == it_pic)
-			qglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
-		
-		image->paletted = uploaded_paletted;
-
-		// size in pixels after power of 2 and scales
-		image->upload_width = upload_width;
-		image->upload_height = upload_height;
-		
-		// vertex offset to apply when cropping
-		image->crop_left = crop_left;
-		image->crop_top = crop_top;
-		
-		// size in pixels after cropping
-		image->crop_width = upload_width-crop_left-crop_right;
-		image->crop_height = upload_height-crop_top-crop_bottom;
-		
-		// texcoords to use when not cropping
-		image->sl = 0;
-		image->sh = 1;
-		image->tl = 0;
-		image->th = 1;
-		
-		// texcoords to use when cropping
-		image->crop_sl = 0 + (float)crop_left/(float)upload_width;
-		image->crop_sh = 1 - (float)crop_right/(float)upload_width;
-		image->crop_tl = 0 + (float)crop_top/(float)upload_height;
-		image->crop_th = 1 - (float)crop_bottom/(float)upload_height;
-	}
-
-	COMPUTE_HASH_KEY( image->hash_key, name, i );
-	return image;
-}
-
-
-/*
-================
 GL_LoadWal
 ================
 */
@@ -1434,33 +1021,6 @@ image_t *GL_LoadWal (char *name)
 
 /*
 ===============
-GL_GetImage
-
-Finds an image, do not attempt to load it
-===============
-*/
-image_t *GL_GetImage( const char * name )
-{
-	image_t *	image = NULL;
-	unsigned int	hash_key;
-	int		i;
-
-	COMPUTE_HASH_KEY( hash_key, name, i );
-	for ( i = 0, image=gltextures ; i<numgltextures ; i++,image++)
-	{
-		if (hash_key == image->hash_key && !strcmp(name, image->name))
-		{
-			image->registration_sequence = registration_sequence;
-			return image;
-		}
-	}
-
-	return NULL;
-}
-
-
-/*
-===============
 GL_FreeImage
 
 Frees an image slot and deletes the texture
@@ -1468,146 +1028,11 @@ Frees an image slot and deletes the texture
 */
 void GL_FreeImage( image_t * image )
 {
-	if ( ! image->texnum )
-		return;
-	qglDeleteTextures (1, (unsigned *)&image->texnum );
-	if ( gl_state.currenttextures[gl_state.currenttmu] == image->texnum ) {
+	qglDeleteTextures (1, (unsigned *)&image->index );
+	if ( gl_state.currenttextures[gl_state.currenttmu] == image->index ) {
 		gl_state.currenttextures[ gl_state.currenttmu ] = 0;
 	}
 	memset (image, 0, sizeof(*image));
-}
-
-
-/*
-===============
-GL_FindImage
-
-Finds or loads the given image
-===============
-*/
-image_t	*GL_FindImage (const char *name, imagetype_t type)
-{
-	image_t		*image = NULL;
-	int		len;
-	byte		*pic, *palette;
-	int		width, height;
-	char		shortname[MAX_QPATH];
-
-	if (!name)
-		goto ret_image;	//	Com_Error (ERR_DROP, "GL_FindImage: NULL name");
-	len = strlen(name);
-	if (len < 5)
-		goto ret_image;	//	Com_Error (ERR_DROP, "GL_FindImage: bad name: %s", name);
-
-	//if HUD, then we want to load the one according to what it is set to.
-	if(!strcmp(name, "pics/i_health.pcx"))
-		return GL_FindImage (cl_hudimage1->string, type);
-	if(!strcmp(name, "pics/i_score.pcx"))
-		return GL_FindImage (cl_hudimage2->string, type);
-	if(!strcmp(name, "pics/i_ammo.pcx"))
-		return GL_FindImage (cl_hudimage3->string, type);
-
-	// look for it
-	image = GL_GetImage( name );
-	if ( image != NULL )
-		return image;
-
-	// strip off .pcx, .tga, etc...
-	COM_StripExtension ( name, shortname );
-
-	//
-	// load the pic from disk
-	//
-	pic = NULL;
-	palette = NULL;
-
-	// Try to load the image with different file extensions, in the following
-	// order of decreasing preference: TGA, JPEG, PCX, and WAL.
-	
-	LoadTGA (va("%s.tga", shortname), &pic, &width, &height);
-	if (pic)
-	{
-		image = GL_LoadPic (name, pic, width, height, type, 32);
-		goto done;
-	}
-	
-	LoadJPG (va("%s.jpg", shortname), &pic, &width, &height);
-	if (pic)
-	{
-		image = GL_LoadPic (name, pic, width, height, type, 32);
-		goto done;
-	}
-	
-	// TGA and JPEG are the only file types used for heightmaps and
-	// normalmaps, so if we haven't found it yet, it isn't there, and we can
-	// save ourselves a file lookup.
-	if (type == it_bump)
-		goto done;
-	
-	LoadPCX (va("%s.pcx", shortname), &pic, &palette, &width, &height);
-	if (pic)
-	{
-		image = GL_LoadPic (name, pic, width, height, type, 8);
-		goto done;
-	}
-
-	if (type == it_wall)
-		image = GL_LoadWal (va("%s.wal", shortname));
-
-done:
-	if (pic)
-		free(pic);
-	if (palette)
-		free(palette);
-	
-	if (image != NULL)
-		image->script = RS_FindScript (shortname);
-
-ret_image:
-	return image;
-}
-
-
-
-/*
-===============
-R_RegisterSkin
-===============
-*/
-struct image_s *R_RegisterSkin (char *name)
-{
-	return GL_FindImage (name, it_skin);
-}
-
-
-/*
-================
-GL_FreeUnusedImages
-
-Any image that was not touched on this registration sequence
-will be freed.
-================
-*/
-void GL_FreeUnusedImages (void)
-{
-	int		i;
-	image_t	*image;
-
-	// never free r_notexture
-	r_notexture->registration_sequence = registration_sequence;
-	
-	for (i=0, image=gltextures ; i<numgltextures ; i++, image++)
-	{
-		if (image->registration_sequence == registration_sequence)
-			continue;		// used this sequence
-		if (!image->registration_sequence)
-			continue;		// free image_t slot
-		if (image->type == it_pic || image->type == it_sprite || image->type == it_particle)
-			continue;		// don't free pics or particles
-		// free it
-		qglDeleteTextures (1, (unsigned *)&image->texnum );
-		memset (image, 0, sizeof(*image));
-	}
 }
 
 /*
@@ -1661,97 +1086,3 @@ int Draw_GetPalette (void)
 
 	return 0;
 }
-
-// TODO: have r_newrefdef available before calling these, put r_mirroretxture
-// in that struct, base it on the viewport specified in that struct. (Needed
-// for splitscreen.)
-void R_InitMirrorTextures( void )
-{
-	byte	*data;
-	int		size;
-	int		size_oneside;
-
-	//init the partial screen texture
-	size_oneside = ceil((512.0f/1080.0f)*(float)vid.height);
-	size = size_oneside * size_oneside * 4;
-	data = malloc( size );
-	memset( data, 255, size );
-	r_mirrortexture = GL_LoadPic( "***r_mirrortexture***", (byte *)data, size_oneside, size_oneside, it_pic, 32 );
-	free ( data );
-}
-
-void R_InitDepthTextures( void )
-{
-	byte	*data;
-	int		size, buffersize;
-	int 	bigsize, littlesize;
-	int		i;
-
-	//init the framebuffer textures
-	bigsize = max (vid.width, vid.height) * 2 * r_shadowmapscale->value;
-	littlesize = min (vid.width, vid.height) * r_shadowmapscale->value;
-	bigsize = littlesize;
-	buffersize = bigsize * bigsize * 4;
-
-	data = malloc (buffersize);
-	memset (data, 255, buffersize);
-
-	for (i = 0; i < deptex_num; i++)
-	{
-		Com_sprintf (deptex_names[i], sizeof (deptex_names[i]), "***r_depthtexture%d***", i);
-		if (i == deptex_sunstatic)
-			size = bigsize;
-		else
-			size = littlesize;
-		r_depthtextures[i] = GL_LoadPic (deptex_names[i], (byte *)data, size, size, it_pic, 32);
-	}
-
-	free ( data );
-}
-
-
-/*
-===============
-GL_InitImages
-===============
-*/
-void	GL_InitImages (void)
-{
-
-	registration_sequence = 1;
-
-	gl_state.inverse_intensity = 1;
-
-	Draw_GetPalette ();
-
-	R_InitMirrorTextures();//MIRRORS
-	R_InitDepthTextures();//DEPTH(SHADOWMAPS)
-	R_FB_InitTextures();//FULLSCREEN EFFECTS
-	R_SI_InitTextures();//SIMPLE ITEMS
-	R_InitBloomTextures();//BLOOMS
-	R_Decals_InitFBO (); // DECALS
-}
-
-/*
-===============
-GL_ShutdownImages
-===============
-*/
-void	GL_ShutdownImages (void)
-{
-	int		i;
-	image_t	*image;
-
-	for (i=0, image=gltextures ; i<numgltextures ; i++, image++)
-	{
-		if (!image->registration_sequence)
-			continue;		// free image_t slot
-		// free it
-		qglDeleteTextures (1, (unsigned *)&image->texnum);
-		memset (image, 0, sizeof(*image));
-	}
-	
-	memset (scrap_allocated, 0, sizeof(scrap_allocated));
-	memset (scrap_texels, 0, sizeof(scrap_texels));
-}
-

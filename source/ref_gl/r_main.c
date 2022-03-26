@@ -1219,7 +1219,7 @@ void R_RenderView (refdef_t *fd)
 				(ms-r_newrefdef.last_mirrorupdate_time) >= 16)
 		{
 			GL_SelectTexture (0);
-			GL_Bind (r_mirrortexture->texnum);
+			GL_Bind (r_mirrortexture->index);
 			qglCopyTexSubImage2D(GL_TEXTURE_2D, 0,
 						0, 0, 0, r_mirrortexture->upload_height/2, 
 						r_mirrortexture->upload_width, 

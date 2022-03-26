@@ -174,7 +174,7 @@ static void Draw_AlphaStretchImage (float x, float y, float w, float h, const im
 	
 		qglColor4f(1,1,1, alphaval);
 
-		GL_Bind (gl->texnum);
+		GL_Bind (gl->index);
 		if (tiling == draw_with_tiling)
 		{
 			qglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
@@ -310,7 +310,7 @@ static void Draw_AlphaAngledStretchImage (float x, float y, float w, float h, co
 			qglColor4f(.1, .4, .6, alphaval);
 	}
 
-	GL_Bind (gl->texnum);
+	GL_Bind (gl->index);
 	
 	VA_SetElem2(tex_array[0], gl->crop_sl, gl->crop_tl);
 	VA_SetElem2(tex_array[1], gl->crop_sh, gl->crop_tl);
