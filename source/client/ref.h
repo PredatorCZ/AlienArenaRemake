@@ -170,7 +170,7 @@ typedef struct {
 // Allocate room for entities sent by the server AND "fake" terrain entities
 // parsed directly out of the BSP on the client-side AND terrain rock/pebble
 // entities AND decal entities.
-cl_entity_pers_t	cl_persistent_ents[MAX_EDICTS+2*MAX_MAP_MODELS+MAX_ROCKS];
+extern cl_entity_pers_t	cl_persistent_ents[MAX_EDICTS+2*MAX_MAP_MODELS+MAX_ROCKS];
 
 
 #define ENTITY_FLAGS  68
@@ -403,6 +403,6 @@ extern RadarEnt_t RadarEnts[MAX_RADAR_ENTS];
 extern cursor_t cursor;
 
 
-qboolean is_localhost; //because ref_gl can't access cls.servername.
+extern qboolean is_localhost; //because ref_gl can't access cls.servername.
 
 #endif // __REF_H

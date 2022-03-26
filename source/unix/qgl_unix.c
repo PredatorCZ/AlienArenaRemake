@@ -45,6 +45,19 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <dlfcn.h>
 #endif
 
+#ifndef APIENTRY
+#  define APIENTRY
+#endif
+
+#undef T
+#define T(x) x // type
+#undef N
+#define N(x) ( APIENTRY * qgl ## x ) // name
+#undef A
+#define A(x) x; // args
+
+#include "../ref_gl/glfuncs.h"
+
 // FIXME HACK
 void * (*qwglGetProcAddress) (const char*);
 

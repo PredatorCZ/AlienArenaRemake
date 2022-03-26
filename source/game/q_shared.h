@@ -274,8 +274,6 @@ char *Com_ParseExt (char **data_p, qboolean allowNewLines);
 char *Com_SkipWhiteSpace (char *data_p, qboolean *hasNewLines);
 void Com_SkipRestOfLine (char **data_p);
 
-int com_parseLine;
-
 void Com_sprintf (char *dest, int size, char *fmt, ...);
 
 void Com_PageInMemory (byte *buffer, int size);
@@ -358,7 +356,7 @@ void	Sys_FindClose (void);
 
 // this is only here so the functions in q_shared.c and q_shwin.c can link
 void Sys_Error (char *error, ...);
-void Com_Printf (char *msg, ...);
+void Com_Printf (const char *msg, ...);
 
 /*
 ==========================================================

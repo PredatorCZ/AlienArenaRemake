@@ -49,6 +49,10 @@ int r_lightgroups;
 
 int		registration_sequence;
 
+worldLight_t r_worldLights[MAX_LIGHTS];
+int r_numWorldLights;
+sunLight_t *r_sunLight;
+
 #if defined WIN32_VARIANT
 char map_music[MAX_PATH];
 char map_music_sec[MAX_PATH];

@@ -90,8 +90,8 @@ extern	entity_t	*currententity;
 extern	model_t		*currentmodel;
 extern	int			r_visframecount;
 extern	int			r_framecount;
-qboolean			r_sunShadowsOn; // any sun shadows this frame?
-qboolean			r_nonSunStaticShadowsOn; // any non-sun static shadows?
+extern  qboolean			r_sunShadowsOn; // any sun shadows this frame?
+extern  qboolean			r_nonSunStaticShadowsOn; // any non-sun static shadows?
 extern	cplane_t	frustum[4];
 extern	int			c_brush_polys, c_alias_polys;
 extern 	int c_flares;
@@ -105,7 +105,7 @@ extern	int			gl_filter_min, gl_filter_max;
 //
 extern	refdef_t	r_newrefdef;
 extern	int		r_viewcluster, r_viewcluster2, r_oldviewcluster, r_oldviewcluster2;
-mleaf_t			*r_viewleaf, *r_viewleaf2;
+extern mleaf_t			*r_viewleaf, *r_viewleaf2;
 
 #define DRAWDIST 15000 // TODO: use this constant in more places
 
@@ -208,8 +208,8 @@ extern	cvar_t	*gl_screenshot_jpeg_quality;
 
 extern  cvar_t  *r_test;
 
-cvar_t *r_showpolycounts;
-cvar_t *gl_showdecals;
+extern cvar_t *r_showpolycounts;
+extern cvar_t *gl_showdecals;
 
 extern	int		gl_lightmap_format;
 extern	int		gl_solid_format;
@@ -237,7 +237,7 @@ void GL_EnableTexture (int target, qboolean enable);
 void GL_SelectTexture (int target);
 void GL_InvalidateTextureState (void);
 
-extern void vectoangles (vec3_t value1, vec3_t angles);
+void vectoangles (vec3_t value1, vec3_t angles);
 
 // dynamic lights
 qboolean R_StaticLightPoint (const vec3_t p, vec3_t color);
@@ -254,68 +254,70 @@ extern	unsigned	d_8to24table[256];
 
 extern	int		registration_sequence;
 
-extern void V_AddBlend (float r, float g, float b, float a, float *v_blend);
+void V_AddBlend (float r, float g, float b, float a, float *v_blend);
 
 // "fake" terrain entities parsed directly out of the BSP on the client side.
-int			num_terrain_entities;
-entity_t	terrain_entities[MAX_MAP_MODELS];
-int			num_rock_entities;
-entity_t	rock_entities[MAX_ROCKS];
-int			num_decal_entities;
-entity_t	decal_entities[MAX_MAP_MODELS];
+extern int			num_terrain_entities;
+extern entity_t	terrain_entities[MAX_MAP_MODELS];
+extern int			num_rock_entities;
+extern entity_t	rock_entities[MAX_ROCKS];
+extern int			num_decal_entities;
+extern entity_t	decal_entities[MAX_MAP_MODELS];
 
 //Renderer main loop
-extern int	R_Init( void *hinstance, void *hWnd );
-extern void R_Shutdown( void );
+int	R_Init( void *hinstance, void *hWnd );
+void R_Shutdown( void );
 
 void R_SetupFog (float distance_boost);
-extern void R_SetupViewport (void);
-extern void R_RenderView (refdef_t *fd);
-extern void GL_ScreenShot_f (void);
-extern void R_Mesh_Draw (entity_t *ent, const model_t *mod);
-extern void R_Mesh_ExtractLightmap (entity_t *ent, const model_t *mod);
-extern void R_DrawBrushModel (void);
-extern void R_DrawWorldSurfs (void);
-extern void R_DrawAlphaSurfaces (void);
-extern void R_InitParticleTexture (void);
-extern void R_DrawParticles (void);
-extern void R_DrawRadar(void);
-extern void R_DrawSkyBox (void);
-extern void Draw_InitLocal (void);
+void R_SetupViewport (void);
+void R_RenderView (refdef_t *fd);
+void GL_ScreenShot_f (void);
+void R_Mesh_Draw (entity_t *ent, const model_t *mod);
+void R_Mesh_ExtractLightmap (entity_t *ent, const model_t *mod);
+void R_DrawBrushModel (void);
+void R_DrawWorldSurfs (void);
+void R_DrawAlphaSurfaces (void);
+void R_InitParticleTexture (void);
+void R_DrawParticles (void);
+void R_DrawRadar(void);
+void R_DrawSkyBox (void);
+void Draw_InitLocal (void);
 
 //Instrumentation and visualization (TODO: new file for this?)
 void R_DrawMark (vec3_t origin, float size, const float rgba[]);
 // for hovering polycount display
-struct
-{
+
+typedef struct renderedmodels_s {
 	const entity_t *ent;
 	const model_t *mod;
-} rendered_models[MAX_EDICTS+2*MAX_MAP_MODELS+MAX_ROCKS];
-int num_rendered_models;
+} renderedmodels_t;
+
+extern renderedmodels_t rendered_models[MAX_EDICTS+2*MAX_MAP_MODELS+MAX_ROCKS];
+extern int num_rendered_models;
 
 //Renderer utils
-extern void R_SubdivideSurface (msurface_t *fa, int firstedge, int numedges);
-extern qboolean R_CullBox (vec3_t mins, vec3_t maxs);
-extern qboolean R_CullOrigin(vec3_t origin);
-extern qboolean R_CullSphere( const vec3_t centre, const float radius, const int clipflags );
+void R_SubdivideSurface (msurface_t *fa, int firstedge, int numedges);
+qboolean R_CullBox (vec3_t mins, vec3_t maxs);
+qboolean R_CullOrigin(vec3_t origin);
+qboolean R_CullSphere( const vec3_t centre, const float radius, const int clipflags );
 void R_RotateForEntity (const entity_t *e);
-extern void R_MarkWorldSurfs (void);
+void R_MarkWorldSurfs (void);
 void R_RenderWaterPolys (msurface_t *fa);
-extern void R_ReadFogScript(char config_file[128]);
-extern void R_ReadMusicScript(char config_file[128]);
-extern int SignbitsForPlane (cplane_t *out);
+void R_ReadFogScript(char config_file[128]);
+void R_ReadMusicScript(char config_file[128]);
+int SignbitsForPlane (cplane_t *out);
 
 //Lights
 extern vec3_t lightspot;
-extern void  VLight_Init (void);
-extern float VLight_GetLightValue ( vec3_t normal, vec3_t dir, float apitch, float ayaw );
+void  VLight_Init (void);
+float VLight_GetLightValue ( vec3_t normal, vec3_t dir, float apitch, float ayaw );
 
 //BSP 
 extern image_t *r_droplets;
 extern image_t *r_droplets_nm;
 extern image_t *r_blooddroplets;
 extern image_t *r_blooddroplets_nm;
-extern void BSP_DrawTexturelessBrushModel (entity_t *e);
+void BSP_DrawTexturelessBrushModel (entity_t *e);
 void BSP_InvalidateVBO (void);
 void BSP_DrawVBOAccum (void);
 void BSP_ClearVBOAccum (void);
@@ -349,90 +351,90 @@ void GL_DrawCollisionMesh (void);
 #define GL_BindIBO(ptr) qglBindBufferARB (GL_ELEMENT_ARRAY_BUFFER, ptr)
 
 //Light Bloom
-extern void R_BloomBlend( refdef_t *fd );
-extern void R_InitBloomTextures( void );
+void R_BloomBlend( refdef_t *fd );
+void R_InitBloomTextures( void );
 
 //Flares and Sun
-int r_numflares;
+extern int r_numflares;
 extern int c_flares;
-flare_t r_flares[MAX_FLARES];
-extern void Mod_AddFlareSurface (msurface_t *surf, int type );
-extern void R_RenderFlares (void);
-extern void R_ClearFlares(void);
+extern flare_t r_flares[MAX_FLARES];
+void Mod_AddFlareSurface (msurface_t *surf, int type );
+void R_RenderFlares (void);
+void R_ClearFlares(void);
 
-vec3_t sun_origin;
-qboolean spacebox;
-qboolean draw_sun;
-float sun_x;
-float sun_y;
-float sun_size;
-float sun_alpha;
-extern void R_InitSun();
-extern void R_RenderSun();
+extern vec3_t sun_origin;
+extern qboolean spacebox;
+extern qboolean draw_sun;
+extern float sun_x;
+extern float sun_y;
+extern float sun_size;
+extern float sun_alpha;
+void R_InitSun();
+void R_RenderSun();
 
 //Vegetation
-int r_numgrasses;
+extern int r_numgrasses;
 extern int c_grasses;
-grass_t r_grasses[MAX_GRASSES];
-qboolean r_hasleaves;
-extern void Mod_AddVegetationSurface (msurface_t *surf, image_t *tex, vec3_t color, float size, char name[MAX_QPATH], int type);
+extern grass_t r_grasses[MAX_GRASSES];
+extern qboolean r_hasleaves;
+void Mod_AddVegetationSurface (msurface_t *surf, image_t *tex, vec3_t color, float size, char name[MAX_QPATH], int type);
 void Mod_AddVegetation (vec3_t origin, vec3_t normal, image_t *tex, vec3_t color, float size, char name[MAX_OSPATH], int type);
-extern void R_DrawVegetationSurface (void);
-extern void R_ClearGrasses(void);
-extern void R_FinalizeGrass(void); 
+void R_DrawVegetationSurface (void);
+void R_ClearGrasses(void);
+void R_FinalizeGrass(void); 
 
 //Simple Items
-extern void R_SI_InitTextures( void );
-extern void R_DrawSimpleItems( void );
+void R_SI_InitTextures( void );
+void R_DrawSimpleItems( void );
 void R_SetSimpleTexnum (model_t *loadmodel, const char *pathname);
 
 //Light beams/volumes
-int r_numbeams;
+extern int r_numbeams;
 extern int c_beams;
-beam_t r_beams[MAX_BEAMS];
-extern void Mod_AddBeamSurface (msurface_t *surf, int texnum, vec3_t color, float size, char name[MAX_QPATH], int type, float xang, float yang,
+extern beam_t r_beams[MAX_BEAMS];
+void Mod_AddBeamSurface (msurface_t *surf, int texnum, vec3_t color, float size, char name[MAX_QPATH], int type, float xang, float yang,
 	qboolean rotating);
-extern void R_DrawBeamSurface ( void );
-extern void R_ClearBeams(void);
+void R_DrawBeamSurface ( void );
+void R_ClearBeams(void);
 
 //Player icons
 extern float	scr_playericonalpha;
 
 //Team colors
-int r_teamColor;
-qboolean r_gotFlag;
-qboolean r_lostFlag;
+extern int r_teamColor;
+extern qboolean r_gotFlag;
+extern qboolean r_lostFlag;
 
-extern void	Draw_GetPicSize (int *w, int *h, const char *name);
-extern void	Draw_Pic (float x, float y, const char *name);
-extern void	Draw_ScaledPic (float x, float y, float scale, const char *pic);
-extern void	Draw_StretchPic (float x, float y, float w, float h, const char *name);
-extern void Draw_AngledScaledPic (float x, float y, float scale, const char *pic, qboolean isNum);
+void	Draw_GetPicSize (int *w, int *h, const char *name);
+void	Draw_Pic (float x, float y, const char *name);
+void	Draw_ScaledPic (float x, float y, float scale, const char *pic);
+void	Draw_StretchPic (float x, float y, float w, float h, const char *name);
+void Draw_AngledScaledPic (float x, float y, float scale, const char *pic, qboolean isNum);
 
-extern void	R_BeginFrame( float camera_separation );
-extern void	R_SwapBuffers( int );
-extern int	Draw_GetPalette (void);
+void	R_BeginFrame( float camera_separation );
+void	R_SwapBuffers( int );
+int	Draw_GetPalette (void);
 
 image_t *R_RegisterSkin (char *name);
 image_t *R_RegisterParticlePic(const char *name);
 image_t *R_RegisterParticleNormal(const char *name);
 image_t *R_RegisterGfxPic(const char *name);
 
-extern image_t *GL_FindFreeImage (const char *name, int width, int height, imagetype_t type);
-extern image_t *GL_LoadPic (const char *name, byte *pic, int width, int height, imagetype_t type, int bits);
-extern image_t *GL_GetImage (const char * name );
-extern image_t	*GL_FindImage (const char *name, imagetype_t type);
-extern void	GL_FreeImage( image_t * image );
-extern void	GL_TextureMode( char *string );
-extern void	GL_ImageList_f (void);
+image_t *GL_FindFreeImage (const char *name, int width, int height, imagetype_t type);
+image_t *GL_LoadPic (const char *name, byte *pic, int width, int height, imagetype_t type, int bits);
+image_t *GL_GetImage (const char * name );
+image_t	*GL_FindImage (const char *name, imagetype_t type);
+void	GL_FreeImage( image_t * image );
+void	GL_TextureMode( char *string );
+void	GL_ImageList_f (void);
 
-extern void	GL_InitImages (void);
-extern void	GL_ShutdownImages (void);
+void	GL_InitImages (void);
+void	GL_ShutdownImages (void);
 
-extern void	GL_FreeUnusedImages (void);
+void	GL_FreeUnusedImages (void);
 
-extern void	GL_TextureAlphaMode( char *string );
-extern void	GL_TextureSolidMode( char *string );
+void	GL_TextureAlphaMode( char *string );
+void	GL_TextureSolidMode( char *string );
 
 /*
 ** GL config stuff
@@ -457,8 +459,6 @@ typedef struct
     qboolean    fullscreen;
 
     int         prev_mode;
-
-    int         lightmap_textures;
 
 #define MAX_TMUS 16
     int         currenttextures[MAX_TMUS];
@@ -533,7 +533,7 @@ void R_AttribPointer (	GLuint index, GLint size, GLenum type,
 extern	cvar_t		*r_shadowmapscale;
 extern  int			r_lightgroups;
 enum {deptex_dynamic, deptex_sunstatic, deptex_otherstatic, deptex_num};
-image_t *r_depthtextures[deptex_num];
+extern image_t *r_depthtextures[deptex_num];
 extern  image_t		*r_colorbuffer;
 extern vec3_t	r_worldLightVec;
 typedef struct	LightGroup 
@@ -545,48 +545,48 @@ typedef struct	LightGroup
 } LightGroup_t;
 extern			LightGroup_t LightGroups[MAX_LIGHTS];
 
-extern void		R_CheckFBOExtensions (void);
-extern void		R_GenerateShadowFBO(void);
-extern void		R_Mesh_DrawCaster (entity_t *ent, const model_t *mod);
+void		R_CheckFBOExtensions (void);
+void		R_GenerateShadowFBO(void);
+void		R_Mesh_DrawCaster (entity_t *ent, const model_t *mod);
 void			R_GenerateGlobalShadows (void);
-extern void		R_GenerateEntityShadow (entity_t *ent, const vec3_t statLightPosition);
-int				FB_texture_width, FB_texture_height;
-float			fadeShadow;
-cvar_t			*r_shadowcutoff;
+void		R_GenerateEntityShadow (entity_t *ent, const vec3_t statLightPosition);
+extern int				FB_texture_width, FB_texture_height;
+extern float			fadeShadow;
+extern cvar_t			*r_shadowcutoff;
 
 //shader programs
-extern void	R_LoadGLSLPrograms(void);
+void	R_LoadGLSLPrograms(void);
 
 #define GLSL_MAX_DLIGHTS 6
 #define CUR_NUM_DLIGHTS min (min (r_newrefdef.num_dlights, gl_dynamic->integer), GLSL_MAX_DLIGHTS)
 
 //glsl
-GLhandleARB g_worldprogramObj[GLSL_MAX_DLIGHTS+1];
-GLhandleARB g_shadowprogramObj;
-GLhandleARB g_warpprogramObj;
-GLhandleARB g_minimapprogramObj;
-GLhandleARB g_rscriptprogramObj[GLSL_MAX_DLIGHTS+1];
-GLhandleARB g_waterprogramObj;
-GLhandleARB g_meshprogramObj[GLSL_MAX_DLIGHTS+1];
-GLhandleARB g_vertexonlymeshprogramObj[GLSL_MAX_DLIGHTS+1];
-GLhandleARB g_glassprogramObj;
-GLhandleARB g_blankmeshprogramObj;
-GLhandleARB g_extractlightmapmeshprogramObj;
-GLhandleARB g_fbprogramObj;
-GLhandleARB g_blurprogramObj;
-GLhandleARB g_defringeprogramObj;
-GLhandleARB g_kawaseprogramObj;
-GLhandleARB g_colorscaleprogramObj;
-GLhandleARB g_colorexpprogramObj;
-GLhandleARB g_rblurprogramObj;
-GLhandleARB g_dropletsprogramObj;
-GLhandleARB g_DOFprogramObj;
-GLhandleARB g_godraysprogramObj;
-GLhandleARB g_vegetationprogramObj;
-GLhandleARB g_lensflareprogramObj;
+extern GLhandleARB g_worldprogramObj[GLSL_MAX_DLIGHTS+1];
+extern GLhandleARB g_shadowprogramObj;
+extern GLhandleARB g_warpprogramObj;
+extern GLhandleARB g_minimapprogramObj;
+extern GLhandleARB g_rscriptprogramObj[GLSL_MAX_DLIGHTS+1];
+extern GLhandleARB g_waterprogramObj;
+extern GLhandleARB g_meshprogramObj[GLSL_MAX_DLIGHTS+1];
+extern GLhandleARB g_vertexonlymeshprogramObj[GLSL_MAX_DLIGHTS+1];
+extern GLhandleARB g_glassprogramObj;
+extern GLhandleARB g_blankmeshprogramObj;
+extern GLhandleARB g_extractlightmapmeshprogramObj;
+extern GLhandleARB g_fbprogramObj;
+extern GLhandleARB g_blurprogramObj;
+extern GLhandleARB g_defringeprogramObj;
+extern GLhandleARB g_kawaseprogramObj;
+extern GLhandleARB g_colorscaleprogramObj;
+extern GLhandleARB g_colorexpprogramObj;
+extern GLhandleARB g_rblurprogramObj;
+extern GLhandleARB g_dropletsprogramObj;
+extern GLhandleARB g_DOFprogramObj;
+extern GLhandleARB g_godraysprogramObj;
+extern GLhandleARB g_vegetationprogramObj;
+extern GLhandleARB g_lensflareprogramObj;
 
-GLhandleARB g_vertexShader;
-GLhandleARB g_fragmentShader;
+extern GLhandleARB g_vertexShader;
+extern GLhandleARB g_fragmentShader;
 
 // vertex attribute indexes
 // blame NVIDIA for this idiocy:
@@ -634,8 +634,7 @@ typedef struct
 void R_SetShadowmapUniforms (shadowmap_uniform_location_t *uniforms, int tmu, qboolean enable); // see r_shadowmaps.c
 
 //standard bsp surfaces
-struct
-{
+typedef struct worldsurfuniforms_s {
 	dlight_uniform_location_t dlight_uniforms;
 	shadowmap_uniform_location_t shadowmap_uniforms;
 	GLuint	surfTexture, heightTexture, lmTexture, normalTexture;
@@ -644,25 +643,31 @@ struct
 	GLuint	liquid, shiny;
 	GLuint	liquidTexture, liquidNormTex, chromeTex;
 	GLuint	rsTime;
-} worldsurf_uniforms[GLSL_MAX_DLIGHTS+1];
+} worldsurfuniforms_t;
+
+
+extern worldsurfuniforms_t worldsurf_uniforms[GLSL_MAX_DLIGHTS+1];
 
 //shadow on white bsp polys
-struct
+typedef struct secondpassbspshadowuniforms_s
 {
 	shadowmap_uniform_location_t shadowmap_uniforms;
 	GLuint fade;
-} secondpass_bsp_shadow_uniforms;
+} secondpassbspshadowuniforms_t;
 
+extern secondpassbspshadowuniforms_t secondpass_bsp_shadow_uniforms;
 // Old-style per-vertex water effects
-struct
+typedef struct warpuniforms_s
 {
 	GLuint	time;
 	GLuint	warpvert;
 	GLuint	envmap;
-} warp_uniforms;
+} warpuniforms_t;
+
+extern warpuniforms_t warp_uniforms;
 
 //rscripts
-struct
+typedef struct rscriptuniforms_s
 {
 	dlight_uniform_location_t	dlight_uniforms;
 	shadowmap_uniform_location_t shadowmap_uniforms;
@@ -680,17 +685,18 @@ struct
 	GLuint						blendNormalmap[3];
 	GLuint						meshPosition;
 	GLuint						meshRotation;
-} rscript_uniforms[GLSL_MAX_DLIGHTS+1];
+} rscriptuniforms_t;
+extern rscriptuniforms_t rscript_uniforms[GLSL_MAX_DLIGHTS+1];
 
 //water
-GLuint		g_location_baseTexture;
-GLuint		g_location_normTexture;
-GLuint		g_location_refTexture;
-GLuint		g_location_time;
-GLuint		g_location_lightPos;
-GLuint		g_location_reflect;
-GLuint		g_location_trans;
-GLuint		g_location_fogamount;
+extern GLuint		g_location_baseTexture;
+extern GLuint		g_location_normTexture;
+extern GLuint		g_location_refTexture;
+extern GLuint		g_location_time;
+extern GLuint		g_location_lightPos;
+extern GLuint		g_location_reflect;
+extern GLuint		g_location_trans;
+extern GLuint		g_location_fogamount;
 
 // All the GLSL shaders that render animated meshes have these uniforms.
 typedef struct
@@ -727,10 +733,10 @@ typedef struct
 	GLuint							team;
 } mesh_uniform_location_t;
 
-mesh_uniform_location_t	mesh_uniforms[GLSL_MAX_DLIGHTS+1], mesh_vertexonly_uniforms[GLSL_MAX_DLIGHTS+1];
+extern mesh_uniform_location_t	mesh_uniforms[GLSL_MAX_DLIGHTS+1], mesh_vertexonly_uniforms[GLSL_MAX_DLIGHTS+1];
 
 // Uniform locations for glass rendering.
-struct
+typedef struct glassuniform_s
 {
 	mesh_anim_uniform_location_t	anim_uniforms;
 	// 1 means mirror only, 2 means glass only, 3 means both
@@ -739,7 +745,8 @@ struct
 	GLuint							mirTexture, refTexture;
 	GLuint							lightPos;
 	GLuint							fog;
-} glass_uniforms;
+} glassuniform_t;
+extern glassuniform_t glass_uniforms;
 
 typedef struct
 {
@@ -748,80 +755,87 @@ typedef struct
 } mesh_blank_uniform_location_t;
 
 // Uniform locations for blank meshes.
-mesh_blank_uniform_location_t blankmesh_uniforms;
+extern mesh_blank_uniform_location_t blankmesh_uniforms;
 
 // Uniform locations for dumping out the static lighting into a lightmap texture
-struct
+typedef struct meshextractlightmapuniforms_s
 {
 	mesh_anim_uniform_location_t	anim_uniforms;
 	GLuint							staticLightPosition, staticLightColor;
-} mesh_extract_lightmap_uniforms;
+} meshextractlightmapuniforms_t;
+extern meshextractlightmapuniforms_t mesh_extract_lightmap_uniforms;
 
 // fullscreen distortion effects
-struct
+typedef struct distortuniforms_s
 {
 	GLuint	framebuffTex, distortTex;
 	GLuint	intensity;
-} distort_uniforms;
+} distortuniforms_t;
+
+extern distortuniforms_t distort_uniforms;
 
 // color scale shader, gaussian blur, kawase filter, defringe
-struct 
+typedef struct 
 {
 	GLuint  scale, source;
-} colorscale_uniforms, gaussian_uniforms, defringe_uniforms, kawase_uniforms;
+} scuniforms_t;
+extern scuniforms_t colorscale_uniforms, gaussian_uniforms, defringe_uniforms, kawase_uniforms;
 
 // color exponentiation shader
-struct 
+typedef struct 
 {
 	GLuint  exponent, source;
-} colorexp_uniforms;
+} esuniforms_t;
+extern esuniforms_t colorexp_uniforms;
 
 // radial blur	
-GLuint		g_location_rsource;
-GLuint		g_location_rparams;
+extern GLuint		g_location_rsource;
+extern GLuint		g_location_rparams;
 
 // water droplets
-GLuint		g_location_drSource;
-GLuint		g_location_drTex;
-GLuint		g_location_drTime;
+extern GLuint		g_location_drSource;
+extern GLuint		g_location_drTex;
+extern GLuint		g_location_drTime;
 
 // DOF
-GLuint		g_location_dofSource;
-GLuint		g_location_dofDepth;
+extern GLuint		g_location_dofSource;
+extern GLuint		g_location_dofDepth;
 
 // god rays
-GLuint		g_location_lightPositionOnScreen;
-GLuint		g_location_sunTex;
-GLuint		g_location_godrayScreenAspect;
-GLuint		g_location_sunRadius;
+extern GLuint		g_location_lightPositionOnScreen;
+extern GLuint		g_location_sunTex;
+extern GLuint		g_location_godrayScreenAspect;
+extern GLuint		g_location_sunRadius;
 
 // vegetation
-struct
+typedef struct
 {
 	GLuint	rsTime;
 	GLuint	up, right;
-} vegetation_uniforms;
+} vegetationuniforms_t;
+extern vegetationuniforms_t vegetation_uniforms;
 
 // lens flare
-struct
+typedef struct
 {
 	GLuint	up, right;
-} lensflare_uniforms;
+} lensflareuniforms_t;
+extern lensflareuniforms_t lensflare_uniforms;
 
 // Shared mesh items
 extern image_t	*r_mirrortexture;
 extern cvar_t	*cl_gun;
-extern void R_ModelViewTransform(const vec3_t in, vec3_t out);
-extern void GL_BlendFunction (GLenum sfactor, GLenum dfactor);
+void R_ModelViewTransform(const vec3_t in, vec3_t out);
+void GL_BlendFunction (GLenum sfactor, GLenum dfactor);
 
 // iqm
-extern qboolean Mod_INTERQUAKEMODEL_Load(model_t *mod, void *buffer);
-extern qboolean IQM_InAnimGroup(int frame, int oldframe);
-extern void IQM_DrawFrame(int skinnum, qboolean ragdoll, float shellAlpha);
-extern void IQM_AnimateFrame (const entity_t *ent, const model_t *mod, matrix3x4_t outframe[SKELETAL_MAX_BONEMATS]);
+qboolean Mod_INTERQUAKEMODEL_Load(model_t *mod, void *buffer);
+qboolean IQM_InAnimGroup(int frame, int oldframe);
+void IQM_DrawFrame(int skinnum, qboolean ragdoll, float shellAlpha);
+void IQM_AnimateFrame (const entity_t *ent, const model_t *mod, matrix3x4_t outframe[SKELETAL_MAX_BONEMATS]);
 
 // md2
-extern void Mod_LoadMD2Model (model_t *mod, void *buffer);
+void Mod_LoadMD2Model (model_t *mod, void *buffer);
 void MD2_SelectFrame (entity_t *ent, const model_t *mod);
 
 // terrain
@@ -835,9 +849,9 @@ void Mod_LoadDecalModel (model_t *mod, void *_buf);
 void R_ParseDecalEntity (char *match, char *block);
 
 // GL Extensions
-extern qboolean GL_QueryExtension(const char *extension_name);
-extern void GL_PrintExtensions(void);
-extern void GL_Strings_f(void);
+qboolean GL_QueryExtension(const char *extension_name);
+void GL_PrintExtensions(void);
+void GL_Strings_f(void);
 
 /*
 ====================================================================
@@ -847,12 +861,12 @@ IMPLEMENTATION SPECIFIC FUNCTIONS
 ====================================================================
 */
 
-extern void		GLimp_BeginFrame( float camera_separation );
-extern void		GLimp_EndFrame( void );
-extern qboolean	GLimp_Init( void *hinstance, void *hWnd );
-extern void		GLimp_Shutdown( void );
-extern rserr_t	GLimp_SetMode( unsigned *pwidth, unsigned *pheight, int mode, windowmode_t windowmode );
-extern void		GLimp_AppActivate( qboolean active );
+void		GLimp_BeginFrame( float camera_separation );
+void		GLimp_EndFrame( void );
+qboolean	GLimp_Init( void *hinstance, void *hWnd );
+void		GLimp_Shutdown( void );
+rserr_t	GLimp_SetMode( unsigned *pwidth, unsigned *pheight, int mode, windowmode_t windowmode );
+void		GLimp_AppActivate( qboolean active );
 
 /*
 ====================================================================

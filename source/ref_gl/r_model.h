@@ -46,9 +46,6 @@ typedef struct
 	qboolean grouped;
 } worldLight_t;
 
-worldLight_t r_worldLights[MAX_LIGHTS];
-int r_numWorldLights;
-
 /*
 ==============================================================================
 
@@ -65,7 +62,7 @@ typedef struct
 	qboolean has_Sun;
 } sunLight_t;
 
-sunLight_t *r_sunLight;
+extern sunLight_t *r_sunLight;
 
 /*
 ==============================================================================

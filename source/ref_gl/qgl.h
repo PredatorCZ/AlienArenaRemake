@@ -40,7 +40,7 @@ void     QGL_Shutdown( void );
 #  define APIENTRY
 #endif
 
-#define T(x) x // type
+#define T(x) extern x // type
 #define N(x) ( APIENTRY * qgl ## x ) // name
 #define A(x) x; // args
 

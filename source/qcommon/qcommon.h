@@ -775,8 +775,8 @@ Common between server and client so prediction matches
 */
 
 extern float pm_airaccelerate;
-qboolean remoteserver_jousting;
-int	remoteserver_runspeed;
+extern qboolean remoteserver_jousting;
+extern int	remoteserver_runspeed;
 
 void Pmove (pmove_t *pmove);
 
@@ -980,9 +980,9 @@ MISC
 
 void		Com_BeginRedirect (int target, char *buffer, int buffersize, void (*flush));
 void		Com_EndRedirect (void);
-void 		Com_Printf (char *fmt, ...);
+void 		Com_Printf (const char *fmt, ...);
 void 		Com_DPrintf (char *fmt, ...);
-void 		Com_Error (int code, char *fmt, ...);
+void 		Com_Error (int code, const char *fmt, ...);
 void 		Com_Quit (void);
 
 int			Com_ServerState (void);		// this should have just been a cvar...
@@ -1000,8 +1000,8 @@ extern	cvar_t	*host_speeds;
 
 extern	cvar_t	*log_stats;
 
-cvar_t *fasttrace_verify; // Test for CM_FastTrace
-cvar_t *test; // cvar to be used for testing/development purposes
+extern cvar_t *fasttrace_verify; // Test for CM_FastTrace
+extern cvar_t *test; // cvar to be used for testing/development purposes
 
 extern	FILE *log_stats_file;
 
